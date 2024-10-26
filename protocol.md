@@ -20,7 +20,7 @@ s.close()
 
 These packets use **7 bytes** to configure Oluv's EQ modes.
 
-| Mode       | Data             |
+| Mode       | Data            |
 |------------|------------------|
 | Studio     | `efb046010102fe` |
 | Indoor     | `efb046010203fe` | 
@@ -69,3 +69,34 @@ These packets use **17 bytes** for EQ configuration.
 - **-10 dB**: `0x00` (0 decimal)
 
 Going above `120` (decimal) has no effect; **+10 dB** is the maximum.
+
+# Automatic Shutdown
+
+**7 byte packets** that set the speaker timeout when it's disconnected from a Bluetooth device.
+
+| Mode         | Data             |
+|---------------|------------------|
+| 5 minutes     | `efb075010102fe` |
+| 10 minutes    | `efb075010203fe` | 
+| 30 minutes    | `efb075010304fe` |
+| 60 minutes    | `efb075010405fe` |
+| 90 minutes    | `efb075010506fe` |
+| 120 minutes   | `efb075010607fe` |
+| No shutdown   | `efb07501ff00fe` |
+
+# Speaker Poweroff
+
+**7 byte packet** that powers off the speaker.
+
+- Packet: `efb025010102fe`
+
+# Bluetooth Pairing
+
+**7 byte packets** that control the Bluetooth pairing modes.
+
+| Mode | Data            |
+| -----|------------------|
+| On   | `efb035010102fe` |
+| Off  | `efb035010001fe` |
+
+
