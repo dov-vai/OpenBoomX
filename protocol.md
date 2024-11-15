@@ -18,7 +18,7 @@ s.close()
 
 # Oluv's EQ
 
-These packets use **7 bytes** to configure Oluv's EQ modes.
+**7 byte packets** to configure Oluv's EQ modes.
 
 | Mode       | Data            |
 |------------|------------------|
@@ -32,7 +32,7 @@ These packets use **7 bytes** to configure Oluv's EQ modes.
 
 # Lights
 
-**10-byte packets** control the RGB lighting settings.
+**10 byte packets** control the RGB lighting settings.
 
 - **Note**: The byte before `fe` at the end doesn’t appear to serve any purpose (not a checksum). Changing it has no effect, so `00` is used as the default.
 
@@ -55,7 +55,7 @@ To set a dancing white color:
 
 # EQ
 
-These packets use **17 bytes** for EQ configuration.
+**17 byte packets** for EQ configuration.
 
 ### Crafting EQ Packets
 
@@ -99,4 +99,12 @@ Going above `120` (decimal) has no effect; **+10 dB** is the maximum.
 | On   | `efb035010102fe` |
 | Off  | `efb035010001fe` |
 
+# Speaker Beep Volume Control
 
+| Volume | Data            |
+|--------|------------------|
+| 0%     | `efb065010102fe` |
+| 25%    | `efb065010203fe` | 
+| 50%    | `efb065010304fe` |
+| 75%    | `efb065010405fe` |
+| 100%   | `efb065010506fe` |
