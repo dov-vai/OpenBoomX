@@ -24,11 +24,10 @@ func FindDeviceAddress(adapter *bluetooth.Adapter, deviceName string, timeout ti
 			deviceAddrCh <- device.Address.String()
 			adapter.StopScan()
 		}
-
 	})
 
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	select {

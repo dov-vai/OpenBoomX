@@ -14,7 +14,6 @@ import (
 func main() {
 	const UBoomXName = "EarFun UBOOM X"
 
-	// Define flags for command-line input
 	lightAction := flag.String("light", "", "Set light action: 'default', 'off', or RGB hex value")
 	solidLight := flag.Bool("solid", false, "Set if the light should be solid. Otherwise it will dance. Must be used with -light.")
 	eq := flag.String("eq", "", "Set custom eq bands: 10 comma separated values from 0 (-10 dB) to 120 (+10dB). E.g. 0,0,0,0,0,0,0,0,0,0")
@@ -27,14 +26,12 @@ func main() {
 
 	flag.Parse()
 
-	// Ensure the Bluetooth stack is enabled
 	adapter := bluetooth.DefaultAdapter
 	utils.Must("enable BLE stack", adapter.Enable())
 
 	address, err := btutils.FindDeviceAddress(adapter, UBoomXName, 5*time.Second)
 	utils.Must("find device", err)
 
-	// Create the hex message for each mode
 	switch {
 	case *lightAction != "":
 		err = protocol.HandleLightAction(*lightAction, *solidLight, address)
