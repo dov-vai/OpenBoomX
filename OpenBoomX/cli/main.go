@@ -1,11 +1,11 @@
 package main
 
 import (
-	"BoomX/btutils"
-	"BoomX/protocol"
-	"BoomX/utils"
 	"flag"
 	"fmt"
+	"obx/btutils"
+	"obx/protocol"
+	"obx/utils"
 	"time"
 
 	"tinygo.org/x/bluetooth"

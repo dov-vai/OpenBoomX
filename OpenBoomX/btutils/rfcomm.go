@@ -1,7 +1,7 @@
 package btutils
 
 import (
-	"BoomX/utils"
+	"obx/utils"
 	"syscall"
 
 	"golang.org/x/sys/unix"
