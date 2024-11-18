@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	ui := NewUI()
+	ui := newUI()
 
 	go func() {
 		w := new(app.Window)
@@ -23,7 +23,7 @@ func main() {
 			app.Title("OpenBoomX"),
 			app.Size(unit.Dp(240), unit.Dp(300)),
 		)
-		if err := ui.Run(w); err != nil {
+		if err := ui.run(w); err != nil {
 			log.Println(err)
 			os.Exit(1)
 		}
@@ -36,25 +36,27 @@ func main() {
 var defaultMargin = unit.Dp(10)
 
 type UI struct {
-	Theme     *material.Theme
-	EqButtons components.EqButtons
+	Theme       *material.Theme
+	EqButtons   components.EqButtons
+	LightPicker components.LightPicker
 }
 
-func NewUI() *UI {
+func newUI() *UI {
 	ui := &UI{}
 	ui.Theme = material.NewTheme()
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
-	ui.EqButtons.Buttons = components.CreateEQButtons()
+	ui.EqButtons = components.CreateEQButtons()
+	ui.LightPicker = components.CreateLightPicker()
 	return ui
 }
 
-func (ui *UI) Run(w *app.Window) error {
+func (ui *UI) run(w *app.Window) error {
 	var ops op.Ops
 	for {
 		switch e := w.Event().(type) {
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
-			ui.Layout(gtx)
+			ui.layout(gtx)
 			e.Frame(gtx.Ops)
 
 		case app.DestroyEvent:
@@ -63,9 +65,18 @@ func (ui *UI) Run(w *app.Window) error {
 	}
 }
 
-func (ui *UI) Layout(gtx layout.Context) layout.Dimensions {
+func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 	inset := layout.UniformInset(defaultMargin)
 	return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return ui.EqButtons.LayoutEQButtons(ui.Theme, gtx)
+		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return ui.EqButtons.Layout(ui.Theme, gtx)
+			}),
+
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return ui.LightPicker.Layout(ui.Theme, gtx)
+			}),
+		)
 	})
 }

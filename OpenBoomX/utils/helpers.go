@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/hex"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -17,7 +18,7 @@ func IsValidHex(s string) bool {
 	return err == nil
 }
 
-// str2ba converts MAC address string representation to little-endian byte array
+// Str2ba converts MAC address string representation to little-endian byte array
 func Str2ba(addr string) [6]byte {
 	a := strings.Split(addr, ":")
 	var b [6]byte
@@ -26,4 +27,15 @@ func Str2ba(addr string) [6]byte {
 		b[len(b)-1-i] = byte(u)
 	}
 	return b
+}
+
+func SortedKeysByValue(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return m[keys[i]] < m[keys[j]]
+	})
+	return keys
 }

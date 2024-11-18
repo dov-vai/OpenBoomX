@@ -1,12 +1,13 @@
 package components
 
 import (
-	"log"
-	"obx/protocol"
-
 	"gioui.org/layout"
+	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"log"
+	"obx/protocol"
+	"obx/utils"
 )
 
 type EqButtons struct {
@@ -18,20 +19,20 @@ type EQButton struct {
 	Clickable widget.Clickable
 }
 
-func CreateEQButtons() []EQButton {
-	var buttons []EQButton
-	for mode := range protocol.EQModes {
+func CreateEQButtons() EqButtons {
+	buttons := make([]EQButton, 0, len(protocol.EQModes))
+	for _, mode := range utils.SortedKeysByValue(protocol.EQModes) {
 		buttons = append(buttons, EQButton{Mode: mode})
 	}
-	return buttons
+	return EqButtons{Buttons: buttons}
 }
 
-func (eq *EqButtons) LayoutEQButtons(th *material.Theme, gtx layout.Context) layout.Dimensions {
+func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	var buttons []layout.FlexChild
 
 	for i := range eq.Buttons {
 		btn := &eq.Buttons[i]
-		for btn.Clickable.Clicked(gtx) {
+		if btn.Clickable.Clicked(gtx) {
 			// TODO: implement connecting to speaker
 			err := protocol.SetOluvMode(btn.Mode, "")
 			if err != nil {
@@ -41,14 +42,19 @@ func (eq *EqButtons) LayoutEQButtons(th *material.Theme, gtx layout.Context) lay
 			}
 		}
 
-		layout := layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+		btnLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return material.Button(th, &btn.Clickable, btn.Mode).Layout(gtx)
 		})
 
-		buttons = append(buttons, layout)
+		spacerLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Spacer{Height: unit.Dp(8)}.Layout(gtx)
+		})
+
+		buttons = append(buttons, btnLayout, spacerLayout)
 	}
 
 	return layout.Flex{
-		Axis: layout.Vertical,
+		Axis:    layout.Vertical,
+		Spacing: layout.SpaceEvenly,
 	}.Layout(gtx, buttons...)
 }
