@@ -39,6 +39,7 @@ type UI struct {
 	Theme       *material.Theme
 	EqButtons   components.EqButtons
 	LightPicker components.LightPicker
+	BeepSlider  components.BeepSlider
 }
 
 func newUI() *UI {
@@ -47,6 +48,7 @@ func newUI() *UI {
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
 	ui.EqButtons = components.CreateEQButtons()
 	ui.LightPicker = components.CreateLightPicker()
+	ui.BeepSlider = components.CreateBeepSlider()
 	return ui
 }
 
@@ -76,6 +78,10 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 
 			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 				return ui.LightPicker.Layout(ui.Theme, gtx)
+			}),
+
+			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+				return ui.BeepSlider.Layout(ui.Theme, gtx)
 			}),
 		)
 	})
