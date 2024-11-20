@@ -12,8 +12,6 @@ import (
 )
 
 func main() {
-	const UBoomXName = "EarFun UBOOM X"
-
 	lightAction := flag.String("light", "", "Set light action: 'default', 'off', or RGB hex value")
 	solidLight := flag.Bool("solid", false, "Set if the light should be solid. Otherwise it will dance. Must be used with -light.")
 	eq := flag.String("eq", "", "Set custom eq bands: 10 comma separated values from 0 (-10 dB) to 120 (+10dB). E.g. 0,0,0,0,0,0,0,0,0,0")
@@ -29,26 +27,29 @@ func main() {
 	adapter := bluetooth.DefaultAdapter
 	utils.Must("enable BLE stack", adapter.Enable())
 
-	address, err := btutils.FindDeviceAddress(adapter, UBoomXName, 5*time.Second)
+	address, err := btutils.FindDeviceAddress(adapter, protocol.UBoomXName, 5*time.Second)
 	utils.Must("find device", err)
+
+	var rfcomm protocol.RfcommClient = protocol.NewUnixClient(address)
+	client := protocol.NewSpeakerClient(rfcomm)
 
 	switch {
 	case *lightAction != "":
-		err = protocol.HandleLightAction(*lightAction, *solidLight, address)
+		err = client.HandleLightAction(*lightAction, *solidLight)
 	case *eq != "":
-		err = protocol.SetCustomEQ(*eq, address)
+		err = client.SetCustomEQ(*eq)
 	case *oluvMode != "":
-		err = protocol.SetOluvMode(*oluvMode, address)
+		err = client.SetOluvMode(*oluvMode)
 	case *shutdown != "":
-		err = protocol.SetShutdownTimeout(*shutdown, address)
+		err = client.SetShutdownTimeout(*shutdown)
 	case *poweroff:
-		err = protocol.PowerOffSpeaker(address)
+		err = client.PowerOffSpeaker()
 	case *pairing != "":
-		err = protocol.SetBluetoothPairing(*pairing, address)
+		err = client.SetBluetoothPairing(*pairing)
 	case *volume != -1:
-		err = protocol.SetBeepVolume(*volume, address)
+		err = client.SetBeepVolume(*volume)
 	case *custom != "":
-		err = protocol.SendMessage(*custom, address)
+		err = client.SendMessage(*custom)
 	default:
 		fmt.Println("No valid action specified")
 		flag.Usage()
