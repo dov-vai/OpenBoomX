@@ -1,10 +1,6 @@
 package main
 
 import (
-	"log"
-	"obx/gui/components"
-	"os"
-
 	"gioui.org/app"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
@@ -12,6 +8,9 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"log"
+	"obx/gui/components"
+	"os"
 )
 
 func main() {
@@ -58,6 +57,7 @@ func (ui *UI) run(w *app.Window) error {
 		switch e := w.Event().(type) {
 		case app.FrameEvent:
 			gtx := app.NewContext(&ops, e)
+			ui.update(gtx)
 			ui.layout(gtx)
 			e.Frame(gtx.Ops)
 
@@ -65,6 +65,10 @@ func (ui *UI) run(w *app.Window) error {
 			return e.Err
 		}
 	}
+}
+
+func (ui *UI) update(gtx layout.Context) {
+	ui.BeepSlider.Update(gtx)
 }
 
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
