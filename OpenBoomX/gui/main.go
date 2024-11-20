@@ -8,19 +8,35 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
+	"image/color"
 	"log"
+	"obx/btutils"
 	"obx/gui/components"
+	"obx/protocol"
+	"obx/utils"
 	"os"
+	"time"
+	"tinygo.org/x/bluetooth"
 )
 
 func main() {
-	ui := newUI()
+	// TODO: add loading screen & error message if device not connected
+	adapter := bluetooth.DefaultAdapter
+	utils.Must("enable BLE stack", adapter.Enable())
+
+	address, err := btutils.FindDeviceAddress(adapter, protocol.UBoomXName, 5*time.Second)
+	utils.Must("find device", err)
+
+	var rfcomm protocol.RfcommClient = protocol.NewUnixClient(address)
+	client := protocol.NewSpeakerClient(rfcomm)
+
+	ui := newUI(client)
 
 	go func() {
 		w := new(app.Window)
 		w.Option(
 			app.Title("OpenBoomX"),
-			app.Size(unit.Dp(240), unit.Dp(300)),
+			app.Size(unit.Dp(300), unit.Dp(700)),
 		)
 		if err := ui.run(w); err != nil {
 			log.Println(err)
@@ -41,14 +57,36 @@ type UI struct {
 	BeepSlider  components.StepSlider
 }
 
-func newUI() *UI {
+func newUI(client *protocol.SpeakerClient) *UI {
 	ui := &UI{}
 	ui.Theme = material.NewTheme()
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
-	ui.EqButtons = components.CreateEQButtons()
-	ui.LightPicker = components.CreateLightPicker()
+	// FIXME: probably should be defining these functions somewhere else?
+	ui.EqButtons = components.CreateEQButtons(func(mode string) {
+		err := client.SetOluvMode(mode)
+		if err != nil {
+			log.Printf("SetOluvMode failed: %v", err)
+		}
+	})
+	ui.LightPicker = components.CreateLightPicker(func(action string) {
+		// FIXME: light changes too frequently for the speaker to handle,
+		// also it sets it to dancing white color on gui launch
+		err := client.HandleLightAction(action, false)
+		if err != nil {
+			log.Printf("HandleLightAction failed: %v", err)
+		}
+	},
+		func(color color.NRGBA, solidColor bool) {
+			err := client.HandleLightAction(utils.NrgbaToHex(color), solidColor)
+			if err != nil {
+				log.Printf("HandleLightAction failed: %v", err)
+			}
+		})
 	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", func(step int) {
-		log.Printf("step changed to %v", step)
+		err := client.SetBeepVolume(25 * step)
+		if err != nil {
+			log.Printf("SetBeepVolume failed: %v", err)
+		}
 	})
 	return ui
 }
@@ -78,15 +116,15 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 	return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.EqButtons.Layout(ui.Theme, gtx)
 			}),
 
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.LightPicker.Layout(ui.Theme, gtx)
 			}),
 
-			layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.BeepSlider.Layout(ui.Theme, gtx)
 			}),
 		)

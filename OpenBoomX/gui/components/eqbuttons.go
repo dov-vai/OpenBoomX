@@ -5,13 +5,13 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"log"
 	"obx/protocol"
 	"obx/utils"
 )
 
 type EqButtons struct {
-	Buttons []EQButton
+	Buttons       []EQButton
+	OnModeClicked func(mode string)
 }
 
 type EQButton struct {
@@ -19,12 +19,12 @@ type EQButton struct {
 	Clickable widget.Clickable
 }
 
-func CreateEQButtons() EqButtons {
+func CreateEQButtons(onModeClicked func(mode string)) EqButtons {
 	buttons := make([]EQButton, 0, len(protocol.EQModes))
 	for _, mode := range utils.SortedKeysByValue(protocol.EQModes) {
 		buttons = append(buttons, EQButton{Mode: mode})
 	}
-	return EqButtons{Buttons: buttons}
+	return EqButtons{Buttons: buttons, OnModeClicked: onModeClicked}
 }
 
 func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
@@ -33,13 +33,7 @@ func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimen
 	for i := range eq.Buttons {
 		btn := &eq.Buttons[i]
 		if btn.Clickable.Clicked(gtx) {
-			// TODO: implement connecting to speaker
-			err := protocol.SetOluvMode(btn.Mode, "")
-			if err != nil {
-				log.Printf("Failed to set mode %s: %v", btn.Mode, err)
-			} else {
-				log.Printf("Mode set to: %s", btn.Mode)
-			}
+			eq.OnModeClicked(btn.Mode)
 		}
 
 		btnLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {

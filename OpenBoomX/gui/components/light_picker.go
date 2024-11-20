@@ -7,8 +7,6 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/colorpicker"
 	"image/color"
-	"log"
-	"obx/protocol"
 )
 
 type LightPicker struct {
@@ -18,31 +16,35 @@ type LightPicker struct {
 	RadioButtonsGroup widget.Enum
 	DefaultButton     widget.Clickable
 	OffButton         widget.Clickable
+	OnActionClicked   func(action string)
+	OnColorChanged    func(color color.NRGBA, solidColor bool)
 }
 
-func CreateLightPicker() LightPicker {
+func CreateLightPicker(onActionClicked func(action string), onColorChanged func(color color.NRGBA, solidColor bool)) LightPicker {
 	picker := &LightPicker{}
 	picker.CurrentColor = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 	picker.Picker.SetColor(picker.CurrentColor)
 	picker.RadioButtonsGroup.Value = "dancing"
+	picker.OnActionClicked = onActionClicked
+	picker.OnColorChanged = onColorChanged
 	return *picker
 }
 
 func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	if lp.Picker.Update(gtx) {
 		lp.CurrentColor = lp.Picker.Color()
+		solidColor := false
+		if lp.RadioButtonsGroup.Value == "solid" {
+			solidColor = true
+		}
+		lp.OnColorChanged(lp.CurrentColor, solidColor)
 	}
 	if lp.OffButton.Clicked(gtx) {
-		err := protocol.HandleLightAction("off", false, "")
-		if err != nil {
-			log.Printf("Failed to set light off mode: %v", err)
-		}
+		// TODO: fix hardcodes everywhere..
+		lp.OnActionClicked("off")
 	}
 	if lp.DefaultButton.Clicked(gtx) {
-		err := protocol.HandleLightAction("default", false, "")
-		if err != nil {
-			log.Printf("Failed to set light default mode: %v", err)
-		}
+		lp.OnActionClicked("default")
 	}
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

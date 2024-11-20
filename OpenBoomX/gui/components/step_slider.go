@@ -13,10 +13,10 @@ type StepSlider struct {
 	Value         widget.Float
 	Steps         int
 	Title         string
-	OnStepChanged func(int) // returns step from 0 to Steps-1
+	OnStepChanged func(step int) // returns step from 0 to Steps-1
 }
 
-func CreateBeepSlider(steps int, title string, onStepChanged func(int)) StepSlider {
+func CreateBeepSlider(steps int, title string, onStepChanged func(step int)) StepSlider {
 	bs := &StepSlider{}
 	bs.Steps = steps
 	bs.Title = title

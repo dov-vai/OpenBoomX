@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/hex"
+	"fmt"
+	"image/color"
 	"sort"
 	"strconv"
 	"strings"
@@ -38,4 +40,8 @@ func SortedKeysByValue(m map[string]string) []string {
 		return m[keys[i]] < m[keys[j]]
 	})
 	return keys
+}
+
+func NrgbaToHex(c color.NRGBA) string {
+	return fmt.Sprintf("%02x%02x%02x", c.R, c.G, c.B)
 }
