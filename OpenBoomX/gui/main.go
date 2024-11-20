@@ -38,7 +38,7 @@ type UI struct {
 	Theme       *material.Theme
 	EqButtons   components.EqButtons
 	LightPicker components.LightPicker
-	BeepSlider  components.BeepSlider
+	BeepSlider  components.StepSlider
 }
 
 func newUI() *UI {
@@ -47,7 +47,9 @@ func newUI() *UI {
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
 	ui.EqButtons = components.CreateEQButtons()
 	ui.LightPicker = components.CreateLightPicker()
-	ui.BeepSlider = components.CreateBeepSlider()
+	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", func(step int) {
+		log.Printf("step changed to %v", step)
+	})
 	return ui
 }
 
