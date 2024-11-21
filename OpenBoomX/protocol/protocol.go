@@ -1,6 +1,9 @@
 package protocol
 
 const UBoomXName = "EarFun UBOOM X"
+const UBoomXName2 = "EarFun Audio"
+const UBoomXOUI = "F8:AB:E5"
+const UBoomXOUI2 = "C7:AB:E5"
 
 // Oluv's EQ Modes
 var EQModes = map[string]string{

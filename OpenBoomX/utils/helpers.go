@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"image/color"
 	"sort"
-	"strconv"
-	"strings"
 )
 
 func Must(action string, err error) {
@@ -18,17 +16,6 @@ func Must(action string, err error) {
 func IsValidHex(s string) bool {
 	_, err := hex.DecodeString(s)
 	return err == nil
-}
-
-// Str2ba converts MAC address string representation to little-endian byte array
-func Str2ba(addr string) [6]byte {
-	a := strings.Split(addr, ":")
-	var b [6]byte
-	for i, tmp := range a {
-		u, _ := strconv.ParseUint(tmp, 16, 8)
-		b[len(b)-1-i] = byte(u)
-	}
-	return b
 }
 
 func SortedKeysByValue(m map[string]string) []string {
