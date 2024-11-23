@@ -20,7 +20,7 @@ func (btn *OffButton) Layout(th *material.Theme, gtx layout.Context) layout.Dime
 		btn.OnButtonClicked()
 	}
 
-	return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return material.Button(th, &btn.Clickable, "Power Off").Layout(gtx)
 		}))

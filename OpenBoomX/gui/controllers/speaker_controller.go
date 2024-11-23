@@ -76,3 +76,17 @@ func (sc *SpeakerController) OnOffButtonClicked() {
 		log.Printf("PowerOffSpeaker failed: %v", err)
 	}
 }
+
+func (sc *SpeakerController) OnPairingOn() {
+	err := sc.client.SetBluetoothPairing("on")
+	if err != nil {
+		log.Printf("SetBluetoothPairing failed: %v", err)
+	}
+}
+
+func (sc *SpeakerController) OnPairingOff() {
+	err := sc.client.SetBluetoothPairing("off")
+	if err != nil {
+		log.Printf("SetBluetoothPairing failed: %v", err)
+	}
+}

@@ -53,7 +53,7 @@ func main() {
 		w := new(app.Window)
 		w.Option(
 			app.Title("OpenBoomX"),
-			app.Size(unit.Dp(300), unit.Dp(700)),
+			app.Size(unit.Dp(300), unit.Dp(750)),
 		)
 		if err := ui.run(w); err != nil {
 			log.Println(err)
@@ -73,6 +73,7 @@ type UI struct {
 	LightPicker       *components.LightPicker
 	BeepSlider        *components.StepSlider
 	OffButton         *components.OffButton
+	PairingButtons    *components.PairingButtons
 	SpeakerController *controllers.SpeakerController
 }
 
@@ -85,6 +86,7 @@ func newUI(client *protocol.SpeakerClient) *UI {
 	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
 	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
 	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
+	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
 	return ui
 }
 
@@ -123,6 +125,10 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.BeepSlider.Layout(ui.Theme, gtx)
+			}),
+
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return ui.PairingButtons.Layout(ui.Theme, gtx)
 			}),
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
