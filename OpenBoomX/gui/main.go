@@ -8,10 +8,10 @@ import (
 	"gioui.org/text"
 	"gioui.org/unit"
 	"gioui.org/widget/material"
-	"image/color"
 	"log"
 	"obx/btutils"
 	"obx/gui/components"
+	"obx/gui/controllers"
 	"obx/protocol"
 	"obx/utils"
 	"os"
@@ -63,43 +63,21 @@ func main() {
 var defaultMargin = unit.Dp(10)
 
 type UI struct {
-	Theme       *material.Theme
-	EqButtons   components.EqButtons
-	LightPicker components.LightPicker
-	BeepSlider  components.StepSlider
+	Theme             *material.Theme
+	EqButtons         components.EqButtons
+	LightPicker       components.LightPicker
+	BeepSlider        components.StepSlider
+	SpeakerController *controllers.SpeakerController
 }
 
 func newUI(client *protocol.SpeakerClient) *UI {
 	ui := &UI{}
 	ui.Theme = material.NewTheme()
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
-	// FIXME: probably should be defining these functions somewhere else?
-	ui.EqButtons = components.CreateEQButtons(func(mode string) {
-		err := client.SetOluvMode(mode)
-		if err != nil {
-			log.Printf("SetOluvMode failed: %v", err)
-		}
-	})
-	ui.LightPicker = components.CreateLightPicker(func(action string) {
-		// FIXME: light changes too frequently for the speaker to handle,
-		// also it sets it to dancing white color on gui launch
-		err := client.HandleLightAction(action, false)
-		if err != nil {
-			log.Printf("HandleLightAction failed: %v", err)
-		}
-	},
-		func(color color.NRGBA, solidColor bool) {
-			err := client.HandleLightAction(utils.NrgbaToHex(color), solidColor)
-			if err != nil {
-				log.Printf("HandleLightAction failed: %v", err)
-			}
-		})
-	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", func(step int) {
-		err := client.SetBeepVolume(25 * step)
-		if err != nil {
-			log.Printf("SetBeepVolume failed: %v", err)
-		}
-	})
+	ui.SpeakerController = controllers.NewSpeakerController(client)
+	ui.EqButtons = components.CreateEQButtons(ui.SpeakerController.OnModeClicked)
+	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
+	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
 	return ui
 }
 
