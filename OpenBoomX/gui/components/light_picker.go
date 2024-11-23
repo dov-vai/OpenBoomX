@@ -20,14 +20,14 @@ type LightPicker struct {
 	OnColorChanged    func(color color.NRGBA, solidColor bool)
 }
 
-func CreateLightPicker(onActionClicked func(action string), onColorChanged func(color color.NRGBA, solidColor bool)) LightPicker {
+func CreateLightPicker(onActionClicked func(action string), onColorChanged func(color color.NRGBA, solidColor bool)) *LightPicker {
 	picker := &LightPicker{}
 	picker.CurrentColor = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
 	picker.Picker.SetColor(picker.CurrentColor)
 	picker.RadioButtonsGroup.Value = "dancing"
 	picker.OnActionClicked = onActionClicked
 	picker.OnColorChanged = onColorChanged
-	return *picker
+	return picker
 }
 
 func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {

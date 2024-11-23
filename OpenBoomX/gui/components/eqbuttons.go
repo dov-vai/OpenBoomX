@@ -19,12 +19,12 @@ type EQButton struct {
 	Clickable widget.Clickable
 }
 
-func CreateEQButtons(onModeClicked func(mode string)) EqButtons {
+func CreateEQButtons(onModeClicked func(mode string)) *EqButtons {
 	buttons := make([]EQButton, 0, len(protocol.EQModes))
 	for _, mode := range utils.SortedKeysByValue(protocol.EQModes) {
 		buttons = append(buttons, EQButton{Mode: mode})
 	}
-	return EqButtons{Buttons: buttons, OnModeClicked: onModeClicked}
+	return &EqButtons{Buttons: buttons, OnModeClicked: onModeClicked}
 }
 
 func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {

@@ -16,12 +16,12 @@ type StepSlider struct {
 	OnStepChanged func(step int) // returns step from 0 to Steps-1
 }
 
-func CreateBeepSlider(steps int, title string, onStepChanged func(step int)) StepSlider {
+func CreateBeepSlider(steps int, title string, onStepChanged func(step int)) *StepSlider {
 	bs := &StepSlider{}
 	bs.Steps = steps
 	bs.Title = title
 	bs.OnStepChanged = onStepChanged
-	return *bs
+	return bs
 }
 
 func (bs *StepSlider) Update(gtx layout.Context) {

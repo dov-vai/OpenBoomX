@@ -69,9 +69,9 @@ var defaultMargin = unit.Dp(10)
 
 type UI struct {
 	Theme             *material.Theme
-	EqButtons         components.EqButtons
-	LightPicker       components.LightPicker
-	BeepSlider        components.StepSlider
+	EqButtons         *components.EqButtons
+	LightPicker       *components.LightPicker
+	BeepSlider        *components.StepSlider
 	OffButton         *components.OffButton
 	SpeakerController *controllers.SpeakerController
 }
