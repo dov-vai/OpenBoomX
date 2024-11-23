@@ -39,7 +39,12 @@ func main() {
 		utils.Must("find device", err)
 	}
 
-	var rfcomm protocol.RfcommClient = protocol.NewRfcommClient(address)
+	rfcomm, err := protocol.NewRfcommClient(address)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rfcomm.CloseSocket()
+
 	client := protocol.NewSpeakerClient(rfcomm)
 
 	ui := newUI(client)

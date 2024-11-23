@@ -42,10 +42,14 @@ func main() {
 		utils.Must("find device", err)
 	}
 
-	var rfcomm protocol.RfcommClient = protocol.NewRfcommClient(address)
+	rfcomm, err := protocol.NewRfcommClient(address)
+	if err != nil {
+		panic(err)
+	}
+	defer rfcomm.CloseSocket()
+
 	client := protocol.NewSpeakerClient(rfcomm)
 
-	var err error
 	switch {
 	case *lightAction != "":
 		err = client.HandleLightAction(*lightAction, *solidLight)

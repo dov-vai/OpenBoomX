@@ -12,11 +12,19 @@ import (
 )
 
 type UnixClient struct {
+	fd      int
 	address string
 }
 
-func NewRfcommClient(address string) *UnixClient {
-	return &UnixClient{address: address}
+func NewRfcommClient(address string) (*UnixClient, error) {
+	client := &UnixClient{}
+	client.address = address
+	fd, err := NewRfcommSocket(address, RfcommChannel)
+	if err != nil {
+		return nil, err
+	}
+	client.fd = fd
+	return client, nil
 }
 
 func (client *UnixClient) SendMessage(hexMsg string) error {
@@ -24,31 +32,34 @@ func (client *UnixClient) SendMessage(hexMsg string) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode hex message: %w", err)
 	}
-	return SendRfcommMsg(message, client.address, RfcommChannel)
+
+	_, err = unix.Write(client.fd, message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func SendRfcommMsg(message []byte, address string, channel uint8) error {
+func (client *UnixClient) CloseSocket() error {
+	return unix.Close(client.fd)
+}
+
+func NewRfcommSocket(address string, channel uint8) (int, error) {
 	addr := str2ba(address)
 
 	fd, err := unix.Socket(syscall.AF_BLUETOOTH, syscall.SOCK_STREAM, unix.BTPROTO_RFCOMM)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	sockAddr := &unix.SockaddrRFCOMM{Addr: addr, Channel: channel}
 
 	err = unix.Connect(fd, sockAddr)
 	if err != nil {
-		return err
-	}
-	defer unix.Close(fd)
-
-	_, err = unix.Write(fd, message)
-	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	return fd, nil
 }
 
 // str2ba converts MAC address string representation to little-endian byte array

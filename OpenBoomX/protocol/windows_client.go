@@ -11,11 +11,19 @@ import (
 )
 
 type WindowsClient struct {
+	fd      int
 	address string
 }
 
-func NewRfcommClient(address string) *WindowsClient {
-	return &WindowsClient{address: address}
+func NewRfcommClient(address string) (*WindowsClient, err) {
+	client := &WindowsClient{}
+	client.address = address
+	fd, err := NewRfcommClient(address)
+	if err != nil {
+		return nil, err
+	}
+	client.fd = fd
+	return client, nil
 }
 
 func (client *WindowsClient) SendMessage(hexMsg string) error {
@@ -23,10 +31,19 @@ func (client *WindowsClient) SendMessage(hexMsg string) error {
 	if err != nil {
 		return fmt.Errorf("failed to decode hex message: %w", err)
 	}
-	return SendRfcommMsg(message, client.address, RfcommChannel)
+	// FIXME: fails writing, "The parameter is incorrect.", which parameter?!
+	_, err = windows.Write(fd, message)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func SendRfcommMsg(message []byte, address string, channel uint8) error {
+func (client *WindowsClient) CloseSocket() error {
+	return windows.Closesocket(fd)
+}
+
+func NewRfcommSocket(address string, channel uint8) (int, error) {
 	addr, err := addrToUint64(address)
 	if err != nil {
 		return err
@@ -39,24 +56,17 @@ func SendRfcommMsg(message []byte, address string, channel uint8) error {
 
 	sppGuid, err := windows.GUIDFromString("{00001101-0000-1000-8000-00805f9b34fb}")
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	sockAddr := &windows.SockaddrBth{BtAddr: addr, ServiceClassId: sppGuid, Port: uint32(channel)}
 
 	err = windows.Connect(fd, sockAddr)
 	if err != nil {
-		return err
-	}
-	defer windows.Closesocket(fd)
-
-	// FIXME: fails writing, "The parameter is incorrect.", which parameter?!
-	_, err = windows.Write(fd, message)
-	if err != nil {
-		return err
+		return -1, err
 	}
 
-	return nil
+	return fd, nil
 }
 
 func addrToUint64(addr string) (uint64, error) {
