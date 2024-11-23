@@ -69,3 +69,10 @@ func (sc *SpeakerController) OnBeepStepChanged(step int) {
 		log.Printf("SetBeepVolume failed: %v", err)
 	}
 }
+
+func (sc *SpeakerController) OnOffButtonClicked() {
+	err := sc.client.PowerOffSpeaker()
+	if err != nil {
+		log.Printf("PowerOffSpeaker failed: %v", err)
+	}
+}

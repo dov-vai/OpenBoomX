@@ -72,6 +72,7 @@ type UI struct {
 	EqButtons         components.EqButtons
 	LightPicker       components.LightPicker
 	BeepSlider        components.StepSlider
+	OffButton         *components.OffButton
 	SpeakerController *controllers.SpeakerController
 }
 
@@ -83,6 +84,7 @@ func newUI(client *protocol.SpeakerClient) *UI {
 	ui.EqButtons = components.CreateEQButtons(ui.SpeakerController.OnModeClicked)
 	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
 	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
+	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
 	return ui
 }
 
@@ -121,6 +123,10 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.BeepSlider.Layout(ui.Theme, gtx)
+			}),
+
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return ui.OffButton.Layout(ui.Theme, gtx)
 			}),
 		)
 	})
