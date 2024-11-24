@@ -7,6 +7,17 @@ import (
 	"strings"
 )
 
+type ISpeakerClient interface {
+	SetCustomEQ(bands string) error
+	SetOluvMode(mode string) error
+	HandleLightAction(action string, solid bool) error
+	SetShutdownTimeout(timeout string) error
+	PowerOffSpeaker() error
+	SetBluetoothPairing(mode string) error
+	SetBeepVolume(volume int) error
+	SendMessage(hexMsg string) error
+}
+
 type SpeakerClient struct {
 	rfcomm RfcommClient
 }

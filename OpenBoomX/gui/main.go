@@ -77,7 +77,7 @@ type UI struct {
 	SpeakerController *controllers.SpeakerController
 }
 
-func newUI(client *protocol.SpeakerClient) *UI {
+func newUI(client protocol.ISpeakerClient) *UI {
 	ui := &UI{}
 	ui.Theme = material.NewTheme()
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))

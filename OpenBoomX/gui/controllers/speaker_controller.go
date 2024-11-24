@@ -10,7 +10,7 @@ import (
 )
 
 type SpeakerController struct {
-	client         *protocol.SpeakerClient
+	client         protocol.ISpeakerClient
 	debounceMutex  sync.Mutex
 	debounceTimer  *time.Timer
 	lastColor      color.NRGBA
@@ -20,7 +20,7 @@ type SpeakerController struct {
 
 const debounceDelay = 200 * time.Millisecond
 
-func NewSpeakerController(client *protocol.SpeakerClient) *SpeakerController {
+func NewSpeakerController(client protocol.ISpeakerClient) *SpeakerController {
 	return &SpeakerController{client: client}
 }
 
