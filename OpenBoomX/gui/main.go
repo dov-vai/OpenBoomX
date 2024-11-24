@@ -74,6 +74,7 @@ type UI struct {
 	BeepSlider        *components.StepSlider
 	OffButton         *components.OffButton
 	PairingButtons    *components.PairingButtons
+	ShutdownSlider    *components.StepSlider
 	SpeakerController *controllers.SpeakerController
 }
 
@@ -86,6 +87,7 @@ func newUI(client protocol.ISpeakerClient) *UI {
 	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
 	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
 	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
+	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
 	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
 	return ui
 }
@@ -108,6 +110,7 @@ func (ui *UI) run(w *app.Window) error {
 
 func (ui *UI) update(gtx layout.Context) {
 	ui.BeepSlider.Update(gtx)
+	ui.ShutdownSlider.Update(gtx)
 }
 
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
@@ -133,6 +136,10 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.OffButton.Layout(ui.Theme, gtx)
+			}),
+
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return ui.ShutdownSlider.Layout(ui.Theme, gtx)
 			}),
 		)
 	})

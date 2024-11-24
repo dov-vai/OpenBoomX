@@ -90,3 +90,11 @@ func (sc *SpeakerController) OnPairingOff() {
 		log.Printf("SetBluetoothPairing failed: %v", err)
 	}
 }
+
+func (sc *SpeakerController) OnShutdownStepChanged(step int) {
+	timeoutMap := []string{"no", "5m", "10m", "30m", "60m", "90m", "120m"}
+	err := sc.client.SetShutdownTimeout(timeoutMap[step])
+	if err != nil {
+		log.Printf("SetShutdownTimeout failed: %v", err)
+	}
+}
