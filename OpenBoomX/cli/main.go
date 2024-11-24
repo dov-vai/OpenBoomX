@@ -3,14 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"obx/btutils"
 	"obx/protocol"
 	"obx/utils"
-	"runtime"
-	"strings"
-	"time"
-
-	"tinygo.org/x/bluetooth"
+	"obx/utils/bluetooth"
 )
 
 func main() {
@@ -26,26 +21,11 @@ func main() {
 
 	flag.Parse()
 
-	adapter := bluetooth.DefaultAdapter
-	utils.Must("enable BLE stack", adapter.Enable())
-
-	var address string
-	if runtime.GOOS == "windows" {
-		var err error
-		address, err = btutils.FindDeviceAddress(adapter, protocol.UBoomXName2, 5*time.Second)
-		utils.Must("find device", err)
-		// FIXME: a hack for getting the correct MAC address of the device, because scanning on windows doesn't seem to work correctly
-		address = strings.Replace(address, protocol.UBoomXOUI2, protocol.UBoomXOUI, 1)
-	} else {
-		var err error
-		address, err = btutils.FindDeviceAddress(adapter, protocol.UBoomXName, 5*time.Second)
-		utils.Must("find device", err)
-	}
+	address, err := bluetooth.GetUBoomXAddress()
+	utils.Must("find uboomx address", err)
 
 	rfcomm, err := protocol.NewRfcommClient(address)
-	if err != nil {
-		panic(err)
-	}
+	utils.Must("create rfcomm client", err)
 	defer rfcomm.CloseSocket()
 
 	client := protocol.NewSpeakerClient(rfcomm)

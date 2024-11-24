@@ -9,35 +9,18 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget/material"
 	"log"
-	"obx/btutils"
 	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/protocol"
 	"obx/utils"
+	"obx/utils/bluetooth"
 	"os"
-	"runtime"
-	"strings"
-	"time"
-	"tinygo.org/x/bluetooth"
 )
 
 func main() {
 	// TODO: add loading screen & error message if device not connected
-	adapter := bluetooth.DefaultAdapter
-	utils.Must("enable BLE stack", adapter.Enable())
-
-	var address string
-	if runtime.GOOS == "windows" {
-		var err error
-		address, err = btutils.FindDeviceAddress(adapter, protocol.UBoomXName2, 5*time.Second)
-		utils.Must("find device", err)
-		// FIXME: a hack for getting the correct MAC address of the device, because scanning on windows doesn't seem to work correctly
-		address = strings.Replace(address, protocol.UBoomXOUI2, protocol.UBoomXOUI, 1)
-	} else {
-		var err error
-		address, err = btutils.FindDeviceAddress(adapter, protocol.UBoomXName, 5*time.Second)
-		utils.Must("find device", err)
-	}
+	address, err := bluetooth.GetUBoomXAddress()
+	utils.Must("find uboomx address", err)
 
 	rfcomm, err := protocol.NewRfcommClient(address)
 	if err != nil {

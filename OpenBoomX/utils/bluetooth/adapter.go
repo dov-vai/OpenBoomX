@@ -1,4 +1,4 @@
-package btutils
+package bluetooth
 
 import (
 	"context"
