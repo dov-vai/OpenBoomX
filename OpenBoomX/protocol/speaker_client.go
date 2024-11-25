@@ -16,6 +16,7 @@ type ISpeakerClient interface {
 	SetBluetoothPairing(mode string) error
 	SetBeepVolume(volume int) error
 	SendMessage(hexMsg string) error
+	CloseConnection() error
 }
 
 type SpeakerClient struct {
@@ -106,4 +107,8 @@ func (client *SpeakerClient) SetBeepVolume(volume int) error {
 
 func (client *SpeakerClient) SendMessage(hexMsg string) error {
 	return client.rfcomm.SendMessage(hexMsg)
+}
+
+func (client *SpeakerClient) CloseConnection() error {
+	return client.rfcomm.CloseSocket()
 }

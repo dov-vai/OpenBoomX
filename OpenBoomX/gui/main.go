@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"gioui.org/app"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
@@ -12,25 +13,35 @@ import (
 	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/protocol"
-	"obx/utils"
 	"obx/utils/bluetooth"
 	"os"
 )
 
 func main() {
-	// TODO: add loading screen & error message if device not connected
-	address, err := bluetooth.GetUBoomXAddress()
-	utils.Must("find uboomx address", err)
+	ui := newUI()
+	defer func() {
+		if ui.SpeakerClient != nil {
+			ui.SpeakerClient.CloseConnection()
+		}
+	}()
 
-	rfcomm, err := protocol.NewRfcommClient(address)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rfcomm.CloseSocket()
+	go func() {
+		// TODO: retry connection button
+		address, err := bluetooth.GetUBoomXAddress()
+		if err != nil {
+			ui.Error = fmt.Errorf("Is speaker not connected?: %w", err)
+			return
+		}
 
-	client := protocol.NewSpeakerClient(rfcomm)
+		rfcomm, err := protocol.NewRfcommClient(address)
+		if err != nil {
+			ui.Error = fmt.Errorf("Is device already connected to speaker?: %w", err)
+			return
+		}
 
-	ui := newUI(client)
+		client := protocol.NewSpeakerClient(rfcomm)
+		ui.initialize(client)
+	}()
 
 	go func() {
 		w := new(app.Window)
@@ -59,12 +70,20 @@ type UI struct {
 	PairingButtons    *components.PairingButtons
 	ShutdownSlider    *components.StepSlider
 	SpeakerController *controllers.SpeakerController
+	SpeakerClient     protocol.ISpeakerClient
+	Loaded            bool
+	Error             error
 }
 
-func newUI(client protocol.ISpeakerClient) *UI {
+func newUI() *UI {
 	ui := &UI{}
 	ui.Theme = material.NewTheme()
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+	return ui
+}
+
+func (ui *UI) initialize(client protocol.ISpeakerClient) {
+	ui.SpeakerClient = client
 	ui.SpeakerController = controllers.NewSpeakerController(client)
 	ui.EqButtons = components.CreateEQButtons(ui.SpeakerController.OnModeClicked)
 	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
@@ -72,7 +91,7 @@ func newUI(client protocol.ISpeakerClient) *UI {
 	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
 	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
 	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
-	return ui
+	ui.Loaded = true
 }
 
 func (ui *UI) run(w *app.Window) error {
@@ -84,7 +103,6 @@ func (ui *UI) run(w *app.Window) error {
 			ui.update(gtx)
 			ui.layout(gtx)
 			e.Frame(gtx.Ops)
-
 		case app.DestroyEvent:
 			return e.Err
 		}
@@ -92,6 +110,9 @@ func (ui *UI) run(w *app.Window) error {
 }
 
 func (ui *UI) update(gtx layout.Context) {
+	if !ui.Loaded {
+		return
+	}
 	ui.BeepSlider.Update(gtx)
 	ui.ShutdownSlider.Update(gtx)
 }
@@ -99,30 +120,60 @@ func (ui *UI) update(gtx layout.Context) {
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 	inset := layout.UniformInset(defaultMargin)
 	return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		if !ui.Loaded {
+			return ui.loadingLayout(gtx)
+		}
+		return ui.appLayout(gtx)
+	})
+}
 
+func (ui *UI) appLayout(gtx layout.Context) layout.Dimensions {
+	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.EqButtons.Layout(ui.Theme, gtx)
+		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.LightPicker.Layout(ui.Theme, gtx)
+		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.BeepSlider.Layout(ui.Theme, gtx)
+		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.PairingButtons.Layout(ui.Theme, gtx)
+		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.OffButton.Layout(ui.Theme, gtx)
+		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.ShutdownSlider.Layout(ui.Theme, gtx)
+		}),
+	)
+}
+
+func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
+	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+		return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.EqButtons.Layout(ui.Theme, gtx)
+				text := "Loading..."
+				if ui.Error != nil {
+					text = ui.Error.Error()
+				}
+				label := material.H5(ui.Theme, text)
+				return label.Layout(gtx)
 			}),
-
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.LightPicker.Layout(ui.Theme, gtx)
-			}),
+				if ui.Error != nil {
+					return layout.Dimensions{}
+				}
 
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.BeepSlider.Layout(ui.Theme, gtx)
-			}),
-
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.PairingButtons.Layout(ui.Theme, gtx)
-			}),
-
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.OffButton.Layout(ui.Theme, gtx)
-			}),
-
-			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.ShutdownSlider.Layout(ui.Theme, gtx)
+				gtx.Constraints.Max.X = gtx.Dp(32)
+				gtx.Constraints.Max.Y = gtx.Dp(32)
+				return material.Loader(ui.Theme).Layout(gtx)
 			}),
 		)
 	})

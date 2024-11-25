@@ -34,3 +34,7 @@ func (client *MockSpeakerClient) SetBeepVolume(volume int) error {
 func (client *MockSpeakerClient) SendMessage(hexMsg string) error {
 	return nil
 }
+
+func (client *MockSpeakerClient) CloseConnection() error {
+	return nil
+}
