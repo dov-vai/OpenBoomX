@@ -8,6 +8,7 @@ import (
 	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
+	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"log"
 	"obx/gui/components"
@@ -17,6 +18,23 @@ import (
 	"os"
 )
 
+func connectSpeaker(ui *UI) {
+	address, err := bluetooth.GetUBoomXAddress()
+	if err != nil {
+		ui.Error = fmt.Errorf("Is speaker not connected?: %w", err)
+		return
+	}
+
+	rfcomm, err := protocol.NewRfcommClient(address)
+	if err != nil {
+		ui.Error = fmt.Errorf("Is device already connected to speaker?: %w", err)
+		return
+	}
+
+	client := protocol.NewSpeakerClient(rfcomm)
+	ui.initialize(client)
+}
+
 func main() {
 	ui := newUI()
 	defer func() {
@@ -25,23 +43,7 @@ func main() {
 		}
 	}()
 
-	go func() {
-		// TODO: retry connection button
-		address, err := bluetooth.GetUBoomXAddress()
-		if err != nil {
-			ui.Error = fmt.Errorf("Is speaker not connected?: %w", err)
-			return
-		}
-
-		rfcomm, err := protocol.NewRfcommClient(address)
-		if err != nil {
-			ui.Error = fmt.Errorf("Is device already connected to speaker?: %w", err)
-			return
-		}
-
-		client := protocol.NewSpeakerClient(rfcomm)
-		ui.initialize(client)
-	}()
+	go connectSpeaker(ui)
 
 	go func() {
 		w := new(app.Window)
@@ -73,6 +75,7 @@ type UI struct {
 	SpeakerClient     protocol.ISpeakerClient
 	Loaded            bool
 	Error             error
+	RetryConnection   widget.Clickable
 }
 
 func newUI() *UI {
@@ -156,6 +159,11 @@ func (ui *UI) appLayout(gtx layout.Context) layout.Dimensions {
 }
 
 func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
+	if ui.RetryConnection.Clicked(gtx) {
+		ui.Error = nil
+		go connectSpeaker(ui)
+	}
+
 	return layout.Center.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
@@ -167,6 +175,9 @@ func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return layout.Spacer{Height: unit.Dp(8)}.Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				if ui.Error != nil {
 					return layout.Dimensions{}
 				}
@@ -174,6 +185,12 @@ func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
 				gtx.Constraints.Max.X = gtx.Dp(32)
 				gtx.Constraints.Max.Y = gtx.Dp(32)
 				return material.Loader(ui.Theme).Layout(gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				if ui.Error == nil {
+					return layout.Dimensions{}
+				}
+				return material.Button(ui.Theme, &ui.RetryConnection, "Retry").Layout(gtx)
 			}),
 		)
 	})
