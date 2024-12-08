@@ -27,5 +27,7 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return ui.ShutdownSlider.Layout(ui.Theme, gtx)
 		}),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions { return ui.EqSlider.Layout(ui.Theme, gtx) }),
 	)
 }

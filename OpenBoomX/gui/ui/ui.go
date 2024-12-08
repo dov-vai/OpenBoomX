@@ -12,6 +12,7 @@ import (
 	"gioui.org/widget/material"
 	"obx/gui/components"
 	"obx/gui/controllers"
+	"obx/gui/testing"
 	"obx/protocol"
 	"obx/utils/bluetooth"
 )
@@ -26,6 +27,7 @@ type UI struct {
 	OffButton         *components.OffButton
 	PairingButtons    *components.PairingButtons
 	ShutdownSlider    *components.StepSlider
+	EqSlider          *components.EqSlider
 	SpeakerController *controllers.SpeakerController
 	SpeakerClient     protocol.ISpeakerClient
 	Loaded            bool
@@ -38,7 +40,13 @@ func NewUI() *UI {
 	ui.Theme = material.NewTheme()
 	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
 	go ui.connectSpeaker()
+	//go ui.connectTestSpeaker()
 	return ui
+}
+
+func (ui *UI) connectTestSpeaker() {
+	client := &testing.MockSpeakerClient{}
+	ui.initialize(client)
 }
 
 // TODO: should this be in ui? maybe speaker client could handle it
@@ -68,6 +76,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
 	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
 	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
+	ui.EqSlider = components.CreateEqSlider(ui.SpeakerController.OnEqValuesChanged)
 	ui.Loaded = true
 }
 

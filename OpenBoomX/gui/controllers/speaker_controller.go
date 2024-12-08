@@ -5,6 +5,8 @@ import (
 	"log"
 	"obx/protocol"
 	"obx/utils"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -96,5 +98,21 @@ func (sc *SpeakerController) OnShutdownStepChanged(step int) {
 	err := sc.client.SetShutdownTimeout(timeoutMap[step])
 	if err != nil {
 		log.Printf("SetShutdownTimeout failed: %v", err)
+	}
+}
+
+func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
+	var sb strings.Builder
+	for i, value := range values {
+		// convert normalized value to range from 0 to 120
+		converted := int(value * 120)
+		sb.WriteString(strconv.Itoa(converted))
+		if i != len(values)-1 {
+			sb.WriteString(",")
+		}
+	}
+	err := sc.client.SetCustomEQ(sb.String())
+	if err != nil {
+		log.Printf("SetCustomEQ failed: %v", err)
 	}
 }
