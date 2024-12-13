@@ -47,8 +47,10 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 				return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceBetween}.Layout(gtx,
 					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 								slider := material.Slider(th, &eq.Sliders[index])
+
+								gtx.Constraints.Min, gtx.Constraints.Max = image.Pt(gtx.Constraints.Min.Y, gtx.Constraints.Min.X), image.Pt(gtx.Constraints.Max.Y, gtx.Constraints.Max.X)
 
 								// rotate slider 90 degrees
 								op.Affine(f32.Affine2D{}.Rotate(f32.Pt(0, 0), float32(3.14/2))).Add(gtx.Ops)
@@ -66,9 +68,7 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 										}
 									}
 								}
-								dims := slider.Layout(gtx)
-								// swap width and height because they were rotated
-								return layout.Dimensions{Size: image.Pt(dims.Size.Y, dims.Size.X)}
+								return slider.Layout(gtx)
 							}),
 						)
 					}),
