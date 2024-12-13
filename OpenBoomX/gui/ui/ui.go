@@ -12,6 +12,7 @@ import (
 	"gioui.org/widget/material"
 	"obx/gui/components"
 	"obx/gui/controllers"
+	"obx/gui/routes"
 	"obx/gui/testing"
 	"obx/protocol"
 	"obx/utils/bluetooth"
@@ -28,11 +29,13 @@ type UI struct {
 	PairingButtons    *components.PairingButtons
 	ShutdownSlider    *components.StepSlider
 	EqSlider          *components.EqSlider
+	NavigationBar     *components.NavigationBar
 	SpeakerController *controllers.SpeakerController
 	SpeakerClient     protocol.ISpeakerClient
 	Loaded            bool
 	Error             error
 	RetryConnection   widget.Clickable
+	CurrentRoute      routes.AppRoute
 }
 
 func NewUI() *UI {
@@ -77,6 +80,10 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
 	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
 	ui.EqSlider = components.CreateEqSlider(ui.SpeakerController.OnEqValuesChanged)
+	ui.NavigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
+		ui.CurrentRoute = route
+	})
+	ui.CurrentRoute = routes.Oluv
 	ui.Loaded = true
 }
 
