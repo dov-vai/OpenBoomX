@@ -1,8 +1,6 @@
 <h1 align="center">Open Boom X</h1>
 
-Earfun UBoom X speaker controls for the (Unix) desktop.
-
-Windows support planned.
+Earfun UBoom X speaker controls for the desktop.
 
 # Protocol
 
