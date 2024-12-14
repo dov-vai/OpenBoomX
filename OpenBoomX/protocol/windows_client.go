@@ -11,62 +11,70 @@ import (
 )
 
 type WindowsClient struct {
-	fd      int
+	handle  windows.Handle
 	address string
 }
 
-func NewRfcommClient(address string) (*WindowsClient, err) {
+func NewRfcommClient(address string) (*WindowsClient, error) {
 	client := &WindowsClient{}
 	client.address = address
-	fd, err := NewRfcommClient(address)
+	handle, err := NewRfcommSocket(address, RfcommChannel)
 	if err != nil {
 		return nil, err
 	}
-	client.fd = fd
+	client.handle = handle
 	return client, nil
 }
 
-func (client *WindowsClient) SendMessage(hexMsg string) error {
+func (c *WindowsClient) SendMessage(hexMsg string) error {
 	message, err := hex.DecodeString(hexMsg)
 	if err != nil {
 		return fmt.Errorf("failed to decode hex message: %w", err)
 	}
-	// FIXME: fails writing, "The parameter is incorrect.", which parameter?!
-	_, err = windows.Write(fd, message)
+
+	var bytesSent uint32
+	var overlapped windows.Overlapped
+
+	err = windows.WSASend(c.handle, &windows.WSABuf{Len: uint32(len(message)), Buf: &message[0]}, 1, &bytesSent, 0, &overlapped, nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("WSASend failed: %w", err)
 	}
+
 	return nil
 }
 
 func (client *WindowsClient) CloseSocket() error {
-	return windows.Closesocket(fd)
+	return windows.Closesocket(client.handle)
 }
 
-func NewRfcommSocket(address string, channel uint8) (int, error) {
+func NewRfcommSocket(address string, channel uint8) (windows.Handle, error) {
 	addr, err := addrToUint64(address)
 	if err != nil {
-		return err
+		return windows.InvalidHandle, err
 	}
 
-	fd, err := windows.Socket(windows.AF_BTH, windows.SOCK_STREAM, windows.BTHPROTO_RFCOMM)
+	handle, err := windows.Socket(windows.AF_BTH, windows.SOCK_STREAM, windows.BTHPROTO_RFCOMM)
 	if err != nil {
-		return err
+		return windows.InvalidHandle, err
 	}
 
 	sppGuid, err := windows.GUIDFromString("{00001101-0000-1000-8000-00805f9b34fb}")
 	if err != nil {
-		return -1, err
+		return windows.InvalidHandle, err
 	}
 
 	sockAddr := &windows.SockaddrBth{BtAddr: addr, ServiceClassId: sppGuid, Port: uint32(channel)}
 
-	err = windows.Connect(fd, sockAddr)
+	err = windows.Connect(handle, sockAddr)
 	if err != nil {
-		return -1, err
+		return windows.InvalidHandle, err
 	}
 
-	return fd, nil
+	if handle == windows.InvalidHandle {
+		return windows.InvalidHandle, fmt.Errorf("invalid handle after connect: %v", err)
+	}
+
+	return handle, nil
 }
 
 func addrToUint64(addr string) (uint64, error) {
