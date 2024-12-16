@@ -30,6 +30,7 @@ type UI struct {
 	ShutdownSlider    *components.StepSlider
 	EqSlider          *components.EqSlider
 	NavigationBar     *components.NavigationBar
+	StatusBar         *components.StatusBar
 	SpeakerController *controllers.SpeakerController
 	SpeakerClient     protocol.ISpeakerClient
 	Loaded            bool
@@ -83,6 +84,8 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.NavigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
 		ui.CurrentRoute = route
 	})
+	ui.StatusBar = components.CreateStatusBar()
+	ui.StatusBar.BatteryLevel, _ = client.ReadBatteryLevel()
 	ui.CurrentRoute = routes.Oluv
 	ui.Loaded = true
 }

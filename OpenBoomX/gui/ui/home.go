@@ -11,6 +11,9 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 
 	children = append(children,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.StatusBar.Layout(ui.Theme, gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return ui.NavigationBar.Layout(ui.Theme, gtx)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

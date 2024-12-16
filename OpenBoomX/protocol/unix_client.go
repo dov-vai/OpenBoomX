@@ -40,6 +40,15 @@ func (client *UnixClient) SendMessage(hexMsg string) error {
 	return nil
 }
 
+func (client *UnixClient) ReceiveMessage(bufferSize int) ([]byte, int, error) {
+	buf := make([]byte, bufferSize)
+	n, err := unix.Read(client.fd, buf)
+	if err != nil {
+		return nil, n, err
+	}
+	return buf, n, nil
+}
+
 func (client *UnixClient) CloseSocket() error {
 	return unix.Close(client.fd)
 }

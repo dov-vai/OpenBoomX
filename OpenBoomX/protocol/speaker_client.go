@@ -1,10 +1,13 @@
 package protocol
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"obx/utils"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type ISpeakerClient interface {
@@ -17,6 +20,8 @@ type ISpeakerClient interface {
 	SetBeepVolume(volume int) error
 	SendMessage(hexMsg string) error
 	CloseConnection() error
+	ReceiveMessage(bufferSize int) ([]byte, int, error)
+	ReadBatteryLevel() (int, error)
 }
 
 type SpeakerClient struct {
@@ -111,4 +116,37 @@ func (client *SpeakerClient) SendMessage(hexMsg string) error {
 
 func (client *SpeakerClient) CloseConnection() error {
 	return client.rfcomm.CloseSocket()
+}
+
+func (client *SpeakerClient) ReceiveMessage(bufferSize int) ([]byte, int, error) {
+	return client.rfcomm.ReceiveMessage(bufferSize)
+}
+
+func (client *SpeakerClient) ReadBatteryLevel() (int, error) {
+	err := client.SendMessage(BatteryLevelRequest)
+	if err != nil {
+		return 0, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return 0, ctx.Err()
+		default:
+			buf, n, err := client.ReceiveMessage(7)
+			if err != nil {
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					return 0, ctx.Err()
+				}
+				return 0, err
+			}
+
+			if n >= 5 && buf[0] == 0xef && buf[1] == 0xa0 && buf[2] == 0x14 && buf[3] == 0x01 {
+				return int(buf[4]), nil
+			}
+		}
+	}
 }

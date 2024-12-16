@@ -43,6 +43,10 @@ func (c *WindowsClient) SendMessage(hexMsg string) error {
 	return nil
 }
 
+func (c *WindowsClient) ReceiveMessage(bufferSize int) ([]byte, int, error) {
+	return nil, 0, fmt.Errorf("not implemented")
+}
+
 func (client *WindowsClient) CloseSocket() error {
 	return windows.Closesocket(client.handle)
 }

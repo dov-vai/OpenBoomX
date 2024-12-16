@@ -38,3 +38,11 @@ func (client *MockSpeakerClient) SendMessage(hexMsg string) error {
 func (client *MockSpeakerClient) CloseConnection() error {
 	return nil
 }
+
+func (client *MockSpeakerClient) ReceiveMessage(bufferSize int) ([]byte, int, error) {
+	return nil, 0, nil
+}
+
+func (client *MockSpeakerClient) ReadBatteryLevel() (int, error) {
+	return 0, nil
+}
