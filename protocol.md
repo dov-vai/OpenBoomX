@@ -101,6 +101,8 @@ Going above `120` (decimal) has no effect; **+10 dB** is the maximum.
 
 # Speaker Beep Volume Control
 
+**7 byte packets** that control the beep volume level.
+
 | Volume | Data            |
 |--------|------------------|
 | 0%     | `efb065010102fe` |
@@ -108,3 +110,13 @@ Going above `120` (decimal) has no effect; **+10 dB** is the maximum.
 | 50%    | `efb065010304fe` |
 | 75%    | `efb065010405fe` |
 | 100%   | `efb065010506fe` |
+
+# Battery Reading
+
+Send message: `efa0140000fe`.
+
+Receive (7 bytes): `efa014015f60fe`.
+
+- Prefix: `efa01401`
+- Battery level (range): `5f60` (in this case - 95-96%)
+- End: `fe`
