@@ -17,7 +17,7 @@ func main() {
 		w := new(app.Window)
 		w.Option(
 			app.Title("OpenBoomX"),
-			app.Size(unit.Dp(850), unit.Dp(400)),
+			app.Size(unit.Dp(850), unit.Dp(450)),
 		)
 		if err := ui.Run(w); err != nil {
 			log.Println(err)

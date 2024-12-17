@@ -10,12 +10,14 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"image/color"
 	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/gui/routes"
 	"obx/gui/testing"
 	"obx/protocol"
 	"obx/utils/bluetooth"
+	"time"
 )
 
 var defaultMargin = unit.Dp(10)
@@ -41,8 +43,10 @@ type UI struct {
 
 func NewUI() *UI {
 	ui := &UI{}
-	ui.Theme = material.NewTheme()
-	ui.Theme.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+	th := material.NewTheme()
+	th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+	th.Palette.ContrastBg = color.NRGBA{R: 0x00, G: 0x80, B: 0x80, A: 0xff}
+	ui.Theme = th
 	go ui.connectSpeaker()
 	//go ui.connectTestSpeaker()
 	return ui
@@ -85,9 +89,36 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 		ui.CurrentRoute = route
 	})
 	ui.StatusBar = components.CreateStatusBar()
-	ui.StatusBar.BatteryLevel, _ = client.ReadBatteryLevel()
+	ui.updateBattery()
 	ui.CurrentRoute = routes.Oluv
 	ui.Loaded = true
+}
+
+func (ui *UI) updateBattery() {
+	updateChannel := make(chan int)
+
+	go func() {
+		ticker := time.NewTicker(30 * time.Second)
+		defer ticker.Stop()
+
+		batteryLevel, _ := ui.SpeakerClient.ReadBatteryLevel()
+		updateChannel <- batteryLevel
+
+		for range ticker.C {
+			batteryLevel, err := ui.SpeakerClient.ReadBatteryLevel()
+			if err != nil {
+				fmt.Println("Error reading battery level:", err)
+			} else {
+				updateChannel <- batteryLevel
+			}
+		}
+	}()
+
+	go func() {
+		for batteryLevel := range updateChannel {
+			ui.StatusBar.BatteryLevel = batteryLevel
+		}
+	}()
 }
 
 func (ui *UI) Run(w *app.Window) error {
