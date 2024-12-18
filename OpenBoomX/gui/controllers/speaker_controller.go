@@ -105,7 +105,7 @@ func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
 	var sb strings.Builder
 	for i, value := range values {
 		// convert normalized value to range from 0 to 120
-		converted := int(value * 120)
+		converted := int((1 - value) * 120)
 		sb.WriteString(strconv.Itoa(converted))
 		if i != len(values)-1 {
 			sb.WriteString(",")
