@@ -27,7 +27,9 @@ func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
 	editors := make([]widget.Editor, 10)
 
 	for i := 0; i < 10; i++ {
-		editorValues[i] = "10"
+		sliderValues[i] = 0.5
+		sliders[i].Value = 0.5
+		editorValues[i] = "0"
 		editors[i].SetText(editorValues[i])
 	}
 
