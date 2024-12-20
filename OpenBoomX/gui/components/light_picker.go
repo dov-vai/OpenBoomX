@@ -12,7 +12,6 @@ import (
 type LightPicker struct {
 	Picker            colorpicker.State
 	CurrentColor      color.NRGBA
-	Solid             bool
 	RadioButtonsGroup widget.Enum
 	DefaultButton     widget.Clickable
 	OffButton         widget.Clickable
@@ -31,7 +30,7 @@ func CreateLightPicker(onActionClicked func(action string), onColorChanged func(
 }
 
 func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
-	if lp.Picker.Update(gtx) {
+	if lp.Picker.Update(gtx) || lp.RadioButtonsGroup.Update(gtx) {
 		lp.CurrentColor = lp.Picker.Color()
 		solidColor := false
 		if lp.RadioButtonsGroup.Value == "solid" {
