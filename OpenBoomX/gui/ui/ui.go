@@ -11,9 +11,11 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"image/color"
+	"log"
 	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/gui/routes"
+	"obx/gui/services"
 	"obx/gui/testing"
 	"obx/protocol"
 	"obx/utils/bluetooth"
@@ -33,6 +35,8 @@ type UI struct {
 	EqSlider          *components.EqSlider
 	NavigationBar     *components.NavigationBar
 	StatusBar         *components.StatusBar
+	EqSaveButton      *components.EqSaveButton
+	EqPresetService   *services.EqPresetService
 	SpeakerController *controllers.SpeakerController
 	SpeakerClient     protocol.ISpeakerClient
 	Loaded            bool
@@ -78,18 +82,35 @@ func (ui *UI) connectSpeaker() {
 func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.SpeakerClient = client
 	ui.SpeakerController = controllers.NewSpeakerController(client)
+	ui.EqPresetService = services.NewEqPresetService()
 	ui.EqButtons = components.CreateEQButtons(ui.SpeakerController.OnModeClicked)
 	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
 	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
 	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
 	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
 	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
-	ui.EqSlider = components.CreateEqSlider(ui.SpeakerController.OnEqValuesChanged)
 	ui.NavigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
 		ui.CurrentRoute = route
 	})
 	ui.StatusBar = components.CreateStatusBar()
 	ui.updateBattery()
+
+	// set currently active preset if it exists
+	var defaultEqValues []float32 = nil
+	activePreset := ui.EqPresetService.GetActivePreset()
+	if activePreset != "" {
+		defaultEqValues, _ = ui.EqPresetService.GetPresetValues(activePreset)
+	}
+
+	ui.EqSlider = components.CreateEqSlider(defaultEqValues, ui.SpeakerController.OnEqValuesChanged)
+	ui.EqSaveButton = components.CreateEqSaveButton(func(title string) {
+		err := ui.EqPresetService.AddPreset(title, ui.EqSlider.SliderValues)
+		if err != nil {
+			log.Println(err)
+		}
+	})
+	ui.EqSaveButton.SetText(activePreset)
+
 	ui.CurrentRoute = routes.Oluv
 	ui.Loaded = true
 }

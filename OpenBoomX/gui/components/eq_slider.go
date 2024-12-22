@@ -20,16 +20,25 @@ type EqSlider struct {
 	Editors         []widget.Editor
 }
 
-func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
+// CreateEqSlider creates an EqSlider object, defaultValues can be nil
+func CreateEqSlider(defaultValues []float32, onValuesChanged func(values []float32)) *EqSlider {
 	sliderValues := make([]float32, 10)
 	sliders := make([]widget.Float, 10)
 	editorValues := make([]string, 10)
 	editors := make([]widget.Editor, 10)
 
+	if defaultValues == nil {
+		defaultValues = []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
+	}
+
+	if len(defaultValues) != 10 {
+		panic("defaultValues must have a length of 10")
+	}
+
 	for i := 0; i < 10; i++ {
-		sliderValues[i] = 0.5
-		sliders[i].Value = 0.5
-		editorValues[i] = "0"
+		sliderValues[i] = defaultValues[i]
+		sliders[i].Value = defaultValues[i]
+		editorValues[i] = sliderToDb(defaultValues[i])
 		editors[i].SetText(editorValues[i])
 	}
 
@@ -60,9 +69,7 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 								if !eq.Sliders[index].Dragging() {
 									if eq.SliderValues[index] != eq.Sliders[index].Value {
 										eq.SliderValues[index] = eq.Sliders[index].Value
-										// interpolate dB value
-										dBValue := (1-eq.SliderValues[index])*20 - 10
-										eq.EditorValues[index] = fmt.Sprintf("%.1f", dBValue)
+										eq.EditorValues[index] = sliderToDb(eq.SliderValues[index])
 										eq.Editors[index].SetText(eq.EditorValues[index])
 
 										if eq.OnValuesChanged != nil {
@@ -82,10 +89,7 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 								// update slider values
 								if eq.Editors[index].Text() != eq.EditorValues[index] {
 									if value, err := strconv.ParseFloat(eq.Editors[index].Text(), 64); err == nil {
-										// map dB value back to 0-1 range for the slider
-										sliderValue := (10 - value) / 20
-										sliderValue = min(sliderValue, 1)
-										sliderValue = max(sliderValue, 0)
+										sliderValue := dbToSlider(value)
 
 										eq.EditorValues[index] = eq.Editors[index].Text()
 										eq.SliderValues[index] = float32(sliderValue)
@@ -108,6 +112,19 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 			})
 		})
 	}
-
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx, children...)
+}
+
+// dbToSlider maps dB value back to 0-1 range for the slider
+func dbToSlider(value float64) float64 {
+	sliderValue := (10 - value) / 20
+	sliderValue = min(sliderValue, 1)
+	sliderValue = max(sliderValue, 0)
+	return sliderValue
+}
+
+// sliderToDb maps slider value to dB for the editor
+func sliderToDb(value float32) string {
+	dBValue := (1-value)*20 - 10
+	return fmt.Sprintf("%.1f", dBValue)
 }

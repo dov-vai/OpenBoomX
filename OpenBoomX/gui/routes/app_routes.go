@@ -6,6 +6,7 @@ const (
 	Loading AppRoute = iota
 	Oluv
 	Eq
+	EqProfiles
 	Lights
 	Misc
 )

@@ -32,6 +32,9 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 	case routes.Eq:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return ui.EqSaveButton.Layout(ui.Theme, gtx)
+			}),
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.EqSlider.Layout(ui.Theme, gtx)
 			}),
 		)
