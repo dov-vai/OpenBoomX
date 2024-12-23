@@ -23,7 +23,7 @@ require (
 	github.com/tinygo-org/cbgo v0.0.4 // indirect
 	github.com/tinygo-org/pio v0.0.0-20240901140349-27cbe9d986eb // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
-	golang.org/x/exp/shiny v0.0.0-20240707233637-46b078467d37 // indirect
+	golang.org/x/exp/shiny v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/image v0.18.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	tinygo.org/x/drivers v0.29.0 // indirect

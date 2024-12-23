@@ -38,6 +38,12 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 				return ui.EqSlider.Layout(ui.Theme, gtx)
 			}),
 		)
+	case routes.EqProfiles:
+		children = append(children,
+			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+				return ui.PresetButtons.Layout(ui.Theme, gtx)
+			}),
+		)
 	case routes.Lights:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {

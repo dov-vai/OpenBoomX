@@ -36,6 +36,7 @@ type UI struct {
 	NavigationBar     *components.NavigationBar
 	StatusBar         *components.StatusBar
 	EqSaveButton      *components.EqSaveButton
+	PresetButtons     *components.PresetButtons
 	EqPresetService   *services.EqPresetService
 	SpeakerController *controllers.SpeakerController
 	SpeakerClient     protocol.ISpeakerClient
@@ -95,14 +96,18 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.StatusBar = components.CreateStatusBar()
 	ui.updateBattery()
 
+	ui.EqSlider = components.CreateEqSlider(ui.SpeakerController.OnEqValuesChanged)
 	// set currently active preset if it exists
-	var defaultEqValues []float32 = nil
 	activePreset := ui.EqPresetService.GetActivePreset()
 	if activePreset != "" {
-		defaultEqValues, _ = ui.EqPresetService.GetPresetValues(activePreset)
+		eqValues, _ := ui.EqPresetService.GetPresetValues(activePreset)
+		err := ui.EqSlider.SetSliderValues(eqValues)
+		if err != nil {
+			log.Println(err)
+		}
 	}
+	ui.EqPresetService.RegisterListener(ui.EqSlider)
 
-	ui.EqSlider = components.CreateEqSlider(defaultEqValues, ui.SpeakerController.OnEqValuesChanged)
 	ui.EqSaveButton = components.CreateEqSaveButton(func(title string) {
 		err := ui.EqPresetService.AddPreset(title, ui.EqSlider.SliderValues)
 		if err != nil {
@@ -110,7 +115,9 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 		}
 	})
 	ui.EqSaveButton.SetText(activePreset)
+	ui.EqPresetService.RegisterListener(ui.EqSaveButton)
 
+	ui.PresetButtons = components.CreatePresetButtons(ui.EqPresetService)
 	ui.CurrentRoute = routes.Oluv
 	ui.Loaded = true
 }

@@ -9,6 +9,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"image"
+	"log"
 	"strconv"
 )
 
@@ -20,29 +21,38 @@ type EqSlider struct {
 	Editors         []widget.Editor
 }
 
-// CreateEqSlider creates an EqSlider object, defaultValues can be nil
-func CreateEqSlider(defaultValues []float32, onValuesChanged func(values []float32)) *EqSlider {
+func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
 	sliderValues := make([]float32, 10)
 	sliders := make([]widget.Float, 10)
 	editorValues := make([]string, 10)
 	editors := make([]widget.Editor, 10)
 
-	if defaultValues == nil {
-		defaultValues = []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
+	defaultValues := []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
+
+	eq := &EqSlider{SliderValues: sliderValues, EditorValues: editorValues, OnValuesChanged: onValuesChanged, Sliders: sliders, Editors: editors}
+
+	err := eq.SetSliderValues(defaultValues)
+	if err != nil {
+		return nil
 	}
 
-	if len(defaultValues) != 10 {
-		panic("defaultValues must have a length of 10")
+	return eq
+}
+
+// SetSliderValues sets the eq values, values must have a length of 10 (10 bands)
+func (eq *EqSlider) SetSliderValues(values []float32) error {
+	if len(values) != 10 {
+		return fmt.Errorf("values must have a length of 10")
 	}
 
 	for i := 0; i < 10; i++ {
-		sliderValues[i] = defaultValues[i]
-		sliders[i].Value = defaultValues[i]
-		editorValues[i] = sliderToDb(defaultValues[i])
-		editors[i].SetText(editorValues[i])
+		eq.SliderValues[i] = values[i]
+		eq.Sliders[i].Value = values[i]
+		eq.EditorValues[i] = sliderToDb(values[i])
+		eq.Editors[i].SetText(eq.EditorValues[i])
 	}
 
-	return &EqSlider{SliderValues: sliderValues, EditorValues: editorValues, OnValuesChanged: onValuesChanged, Sliders: sliders, Editors: editors}
+	return nil
 }
 
 func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
@@ -113,6 +123,18 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 		})
 	}
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx, children...)
+}
+
+func (eq *EqSlider) OnPresetChanged(newPreset string, values []float32) {
+	if newPreset == "" || values == nil {
+		return
+	}
+
+	err := eq.SetSliderValues(values)
+	if err != nil {
+		log.Println(err)
+	}
+	eq.OnValuesChanged(eq.SliderValues)
 }
 
 // dbToSlider maps dB value back to 0-1 range for the slider

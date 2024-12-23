@@ -44,3 +44,7 @@ func (btn *EqSaveButton) Layout(th *material.Theme, gtx layout.Context) layout.D
 func (btn *EqSaveButton) SetText(text string) {
 	btn.Editor.SetText(text)
 }
+
+func (btn *EqSaveButton) OnPresetChanged(newPreset string, values []float32) {
+	btn.SetText(newPreset)
+}

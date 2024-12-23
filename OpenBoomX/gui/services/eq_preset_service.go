@@ -8,11 +8,16 @@ import (
 	"path/filepath"
 )
 
+type PresetChangeListener interface {
+	OnPresetChanged(newPreset string, values []float32)
+}
+
 type EqPresetService struct {
 	configDir      string
 	presetFilePath string
 	activePreset   string
 	presets        map[string][]float32
+	listeners      []PresetChangeListener
 }
 
 type PresetData struct {
@@ -30,6 +35,7 @@ func NewEqPresetService() *EqPresetService {
 		configDir:      filepath.Join(configDir, "OpenBoomX"),
 		presetFilePath: filepath.Join(configDir, "OpenBoomX", "presets.json"),
 		presets:        make(map[string][]float32),
+		listeners:      []PresetChangeListener{},
 	}
 
 	if err := service.ensureConfigDir(); err != nil {
@@ -99,6 +105,7 @@ func (service *EqPresetService) AddPreset(title string, values []float32) error 
 	}
 
 	log.Printf("Added and activated preset: '%s' with values: %v\n", title, values)
+	service.notifyListeners()
 	return nil
 }
 
@@ -112,6 +119,7 @@ func (service *EqPresetService) DeletePreset(title string) error {
 	// If the deleted preset was the active one, clear the active preset.
 	if service.activePreset == title {
 		service.activePreset = ""
+		service.notifyListeners()
 	}
 
 	if err := service.savePresets(); err != nil {
@@ -137,6 +145,7 @@ func (service *EqPresetService) SetActivePreset(title string) error {
 	}
 
 	log.Printf("Set active preset to: '%s'\n", title)
+	service.notifyListeners()
 	return nil
 }
 
@@ -154,4 +163,24 @@ func (service *EqPresetService) ListPresets() []string {
 		titles = append(titles, title)
 	}
 	return titles
+}
+
+func (service *EqPresetService) RegisterListener(listener PresetChangeListener) {
+	service.listeners = append(service.listeners, listener)
+}
+
+func (service *EqPresetService) RemoveListener(listener PresetChangeListener) {
+	for i, l := range service.listeners {
+		if l == listener {
+			service.listeners = append(service.listeners[:i], service.listeners[i+1:]...)
+			break
+		}
+	}
+}
+
+func (service *EqPresetService) notifyListeners() {
+	activePresetValues, _ := service.GetPresetValues(service.activePreset)
+	for _, listener := range service.listeners {
+		listener.OnPresetChanged(service.activePreset, activePresetValues)
+	}
 }
