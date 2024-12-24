@@ -2,14 +2,13 @@ package components
 
 import (
 	"fmt"
-	"golang.org/x/exp/shiny/materialdesign/icons"
-	"image/color"
-	"log"
-
 	"gioui.org/layout"
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"golang.org/x/exp/shiny/materialdesign/icons"
+	"image/color"
+	"log"
 	"obx/gui/services"
 )
 
@@ -42,20 +41,11 @@ func CreatePresetButtons(presetService *services.EqPresetService) *PresetButtons
 				Axis: layout.Vertical,
 			},
 		},
+		presetButtons: createPresetButtons(presetService.ListPresets()),
 	}
 }
 
 func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
-	presetTitles := pb.presetService.ListPresets()
-
-	// Update the preset buttons if the list of presets has changed
-	if len(pb.presetButtons) != len(presetTitles) {
-		pb.presetButtons = make([]*PresetButton, len(presetTitles))
-		for i, title := range presetTitles {
-			pb.presetButtons[i] = &PresetButton{Title: title}
-		}
-	}
-
 	activePreset := pb.presetService.GetActivePreset()
 
 	for _, btn := range pb.presetButtons {
@@ -74,7 +64,6 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 	inactiveColor := color.NRGBA{R: 0x95, G: 0xb1, B: 0xb0, A: 0xff}
 	removeColor := color.NRGBA{R: 0x8b, G: 0x1c, B: 0x00, A: 0xff}
 
-	// FIXME: list order changes when removed or added, hashmap related
 	return material.List(th, &pb.list).Layout(gtx, len(pb.presetButtons), func(gtx layout.Context, index int) layout.Dimensions {
 		btn := pb.presetButtons[index]
 		return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -98,4 +87,16 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 			)
 		})
 	})
+}
+
+func createPresetButtons(presetTitles []string) []*PresetButton {
+	presetButtons := make([]*PresetButton, len(presetTitles))
+	for i, title := range presetTitles {
+		presetButtons[i] = &PresetButton{Title: title}
+	}
+	return presetButtons
+}
+
+func (pb *PresetButtons) OnPresetChanged(newPreset string, values []float32) {
+	pb.presetButtons = createPresetButtons(pb.presetService.ListPresets())
 }

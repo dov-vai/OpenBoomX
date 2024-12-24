@@ -118,6 +118,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.EqPresetService.RegisterListener(ui.EqSaveButton)
 
 	ui.PresetButtons = components.CreatePresetButtons(ui.EqPresetService)
+	ui.EqPresetService.RegisterListener(ui.PresetButtons)
 	ui.CurrentRoute = routes.Oluv
 	ui.Loaded = true
 }
