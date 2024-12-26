@@ -6,10 +6,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"golang.org/x/exp/shiny/materialdesign/icons"
-	"image/color"
-	"log"
 	"obx/gui/services"
+	"obx/gui/theme"
 )
 
 type PresetButtons struct {
@@ -24,16 +22,7 @@ type PresetButton struct {
 	RemoveButton widget.Clickable
 }
 
-var DeleteIcon *widget.Icon
-
 func CreatePresetButtons(presetService *services.EqPresetService) *PresetButtons {
-	// TODO: refactor, maybe should have some separate package with icons defined and loaded?
-	var err error
-	DeleteIcon, err = widget.NewIcon(icons.ActionDelete)
-	if err != nil {
-		log.Fatalf("Failed to create delete icon: %v", err)
-	}
-
 	return &PresetButtons{
 		presetService: presetService,
 		list: widget.List{
@@ -61,9 +50,6 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 		}
 	}
 
-	inactiveColor := color.NRGBA{R: 0x95, G: 0xb1, B: 0xb0, A: 0xff}
-	removeColor := color.NRGBA{R: 0x8b, G: 0x1c, B: 0x00, A: 0xff}
-
 	return material.List(th, &pb.list).Layout(gtx, len(pb.presetButtons), func(gtx layout.Context, index int) layout.Dimensions {
 		btn := pb.presetButtons[index]
 		return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
@@ -71,15 +57,15 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
 					btnStyle := material.Button(th, &btn.Clickable, btn.Title)
 					if btn.Title != activePreset {
-						btnStyle.Background = inactiveColor
+						btnStyle.Background = theme.Surface0Color
 					}
 
 					return btnStyle.Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{Left: unit.Dp(8)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						btnStyle := material.IconButton(th, &btn.RemoveButton, DeleteIcon, "Remove")
-						btnStyle.Background = removeColor
+						btnStyle := material.IconButton(th, &btn.RemoveButton, theme.DeleteIcon, "Remove")
+						btnStyle.Background = theme.WarningColor
 
 						return btnStyle.Layout(gtx)
 					})

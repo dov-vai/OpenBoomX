@@ -4,6 +4,8 @@ import (
 	"gioui.org/layout"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/component"
+	"obx/gui/theme"
 )
 
 type EqSaveButton struct {
@@ -32,7 +34,20 @@ func (btn *EqSaveButton) Layout(th *material.Theme, gtx layout.Context) layout.D
 
 	return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return material.Editor(th, &btn.Editor, "Preset title").Layout(gtx)
+			surfaceStyle := component.Surface(
+				&material.Theme{
+					Palette: material.Palette{
+						Bg: theme.Surface0Color,
+					},
+				})
+
+			surfaceStyle.CornerRadius = 4
+
+			return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.UniformInset(8).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+					return material.Editor(th, &btn.Editor, "Preset title").Layout(gtx)
+				})
+			})
 		}),
 		layout.Rigid(layout.Spacer{Width: 8}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

@@ -5,6 +5,7 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"obx/gui/routes"
+	"obx/gui/theme"
 )
 
 type RouteButtonData struct {
@@ -15,7 +16,7 @@ type RouteButtonData struct {
 var buttons = []RouteButtonData{
 	{Label: "Oluv", Route: routes.Oluv},
 	{Label: "EQ", Route: routes.Eq},
-	{Label: "EQ Profiles", Route: routes.EqProfiles},
+	{Label: "Profiles", Route: routes.EqProfiles},
 	{Label: "Lights", Route: routes.Lights},
 	{Label: "Misc", Route: routes.Misc},
 }
@@ -37,6 +38,9 @@ func CreateNavigationBar(onRouteSelected func(route routes.AppRoute)) *Navigatio
 }
 
 func (nb *NavigationBar) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
+	navTheme := *th
+	navTheme.ContrastBg = theme.CrustColor
+
 	routeButtons := make([]layout.FlexChild, len(buttons))
 
 	for i, btnData := range buttons {
@@ -49,7 +53,7 @@ func (nb *NavigationBar) Layout(th *material.Theme, gtx layout.Context) layout.D
 		}
 
 		routeButtons[i] = layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return material.Button(th, clickable, label).Layout(gtx)
+			return material.Button(&navTheme, clickable, label).Layout(gtx)
 		})
 	}
 

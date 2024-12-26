@@ -2,29 +2,24 @@ package components
 
 import (
 	"gioui.org/layout"
-	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"gioui.org/x/colorpicker"
 	"image/color"
+	"obx/gui/obxcolorpicker"
 )
 
 type LightPicker struct {
-	Picker            colorpicker.State
+	Picker            obxcolorpicker.State
 	CurrentColor      color.NRGBA
 	RadioButtonsGroup widget.Enum
-	DefaultButton     widget.Clickable
-	OffButton         widget.Clickable
-	OnActionClicked   func(action string)
 	OnColorChanged    func(color color.NRGBA, solidColor bool)
 }
 
-func CreateLightPicker(onActionClicked func(action string), onColorChanged func(color color.NRGBA, solidColor bool)) *LightPicker {
+func CreateLightPicker(onColorChanged func(color color.NRGBA, solidColor bool)) *LightPicker {
 	picker := &LightPicker{}
-	picker.CurrentColor = color.NRGBA{R: 255, G: 255, B: 255, A: 255}
+	picker.CurrentColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	picker.Picker.SetColor(picker.CurrentColor)
 	picker.RadioButtonsGroup.Value = "dancing"
-	picker.OnActionClicked = onActionClicked
 	picker.OnColorChanged = onColorChanged
 	return picker
 }
@@ -38,29 +33,10 @@ func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dim
 		}
 		lp.OnColorChanged(lp.CurrentColor, solidColor)
 	}
-	if lp.OffButton.Clicked(gtx) {
-		// TODO: fix hardcodes everywhere..
-		lp.OnActionClicked("off")
-	}
-	if lp.DefaultButton.Clicked(gtx) {
-		lp.OnActionClicked("default")
-	}
+
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return material.Button(th, &lp.DefaultButton, "Default").Layout(gtx)
-				}),
-				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return layout.Spacer{Width: unit.Dp(8)}.Layout(gtx)
-				}),
-				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return material.Button(th, &lp.OffButton, "Off").Layout(gtx)
-				}),
-			)
-		}),
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return colorpicker.PickerStyle{
+			return obxcolorpicker.PickerStyle{
 				Label:         "Lights Color",
 				Theme:         th,
 				State:         &lp.Picker,

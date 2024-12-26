@@ -10,13 +10,14 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"image/color"
+	"gioui.org/x/component"
 	"log"
 	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/gui/routes"
 	"obx/gui/services"
 	"obx/gui/testing"
+	"obx/gui/theme"
 	"obx/protocol"
 	"obx/utils/bluetooth"
 	"time"
@@ -26,7 +27,9 @@ var defaultMargin = unit.Dp(10)
 
 type UI struct {
 	Theme             *material.Theme
+	ButtonTheme       *material.Theme
 	EqButtons         *components.EqButtons
+	LightButtons      *components.LightButtons
 	LightPicker       *components.LightPicker
 	BeepSlider        *components.StepSlider
 	OffButton         *components.OffButton
@@ -48,10 +51,12 @@ type UI struct {
 
 func NewUI() *UI {
 	ui := &UI{}
-	th := material.NewTheme()
-	th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
-	th.Palette.ContrastBg = color.NRGBA{R: 0x00, G: 0x80, B: 0x80, A: 0xff}
-	ui.Theme = th
+	_th := material.NewTheme()
+	_th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
+	th := _th.WithPalette(theme.Palette)
+	ui.Theme = &th
+	btnTheme := _th.WithPalette(theme.ButtonPalette)
+	ui.ButtonTheme = &btnTheme
 	go ui.connectSpeaker()
 	//go ui.connectTestSpeaker()
 	return ui
@@ -85,7 +90,8 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.SpeakerController = controllers.NewSpeakerController(client)
 	ui.EqPresetService = services.NewEqPresetService()
 	ui.EqButtons = components.CreateEQButtons(ui.SpeakerController.OnModeClicked)
-	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnActionClicked, ui.SpeakerController.OnColorChanged)
+	ui.LightButtons = components.CreateLightButtons(ui.SpeakerController.OnActionClicked)
+	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnColorChanged)
 	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
 	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
 	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
@@ -175,12 +181,32 @@ func (ui *UI) update(gtx layout.Context) {
 
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 	inset := layout.UniformInset(defaultMargin)
-	return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-		if !ui.Loaded {
-			return ui.loadingLayout(gtx)
-		}
-		return ui.homeLayout(gtx)
-	})
+
+	return layout.Stack{}.Layout(gtx,
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			surfaceStyle := component.Surface(
+				&material.Theme{
+					Palette: material.Palette{
+						Bg: ui.Theme.Bg,
+					},
+				})
+
+			surfaceStyle.CornerRadius = 0
+
+			return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Dimensions{Size: gtx.Constraints.Max}
+			})
+		}),
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				if !ui.Loaded {
+
+					return ui.loadingLayout(gtx)
+				}
+				return ui.homeLayout(gtx)
+			})
+		}),
+	)
 }
 
 func (ui *UI) Dispose() {
