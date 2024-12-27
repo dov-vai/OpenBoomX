@@ -44,7 +44,18 @@ func (c *WindowsClient) SendMessage(hexMsg string) error {
 }
 
 func (c *WindowsClient) ReceiveMessage(bufferSize int) ([]byte, int, error) {
-	return nil, 0, fmt.Errorf("not implemented")
+	buf := make([]byte, bufferSize)
+	var bytesReceived uint32
+	var flags uint32
+	var overlapped windows.Overlapped
+	wsaBuf := windows.WSABuf{Len: uint32(bufferSize), Buf: &buf[0]}
+
+	err := windows.WSARecv(c.handle, &wsaBuf, 1, &bytesReceived, &flags, &overlapped, nil)
+	if err != nil {
+		return nil, int(bytesReceived), fmt.Errorf("WSARecv failed: %w", err)
+	}
+
+	return buf, int(bytesReceived), nil
 }
 
 func (client *WindowsClient) CloseSocket() error {
