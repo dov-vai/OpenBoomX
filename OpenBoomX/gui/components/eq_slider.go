@@ -5,11 +5,13 @@ import (
 	"gioui.org/f32"
 	"gioui.org/layout"
 	"gioui.org/op"
-	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"gioui.org/x/component"
 	"image"
 	"log"
+	"math"
+	"obx/gui/theme"
 	"strconv"
 )
 
@@ -58,68 +60,81 @@ func (eq *EqSlider) SetSliderValues(values []float32) error {
 func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	children := make([]layout.FlexChild, len(eq.Sliders))
 	for i := range eq.Sliders {
-		index := i
+		children[i] = layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 
-		children[i] = layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			// FIXME: one of the sliders goes out of bounds to the left, so inset is quite large
-			inset := layout.Inset{Top: unit.Dp(20), Bottom: unit.Dp(20), Left: unit.Dp(40)}
+			return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
+				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					rec := op.Record(gtx.Ops)
 
-			return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				return layout.Flex{Axis: layout.Vertical, Spacing: layout.SpaceBetween}.Layout(gtx,
-					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-						return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								slider := material.Slider(th, &eq.Sliders[index])
+					gtx.Constraints.Min, gtx.Constraints.Max = image.Pt(gtx.Constraints.Min.Y, gtx.Constraints.Min.X), image.Pt(gtx.Constraints.Max.Y, gtx.Constraints.Max.X)
 
-								gtx.Constraints.Min, gtx.Constraints.Max = image.Pt(gtx.Constraints.Min.Y, gtx.Constraints.Min.X), image.Pt(gtx.Constraints.Max.Y, gtx.Constraints.Max.X)
+					// yes.. magic number bad (approximate width of the text editor so it centers properly)
+					estimateSize := 35
 
-								// rotate slider 90 degrees
-								op.Affine(f32.Affine2D{}.Rotate(f32.Pt(0, 0), float32(3.14/2))).Add(gtx.Ops)
+					op.Offset(image.Pt(estimateSize, estimateSize)).Add(gtx.Ops)
 
-								if !eq.Sliders[index].Dragging() {
-									if eq.SliderValues[index] != eq.Sliders[index].Value {
-										eq.SliderValues[index] = eq.Sliders[index].Value
-										eq.EditorValues[index] = sliderToDb(eq.SliderValues[index])
-										eq.Editors[index].SetText(eq.EditorValues[index])
+					// rotate slider 90 degrees
+					op.Affine(f32.Affine2D{}.Rotate(f32.Pt(0, 0), float32(math.Pi/2))).Add(gtx.Ops)
 
-										if eq.OnValuesChanged != nil {
-											eq.OnValuesChanged(eq.SliderValues)
-										}
-									}
-								}
-								return slider.Layout(gtx)
-							}),
-						)
-					}),
-					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-						// use a horizontal Flex layout for editor and dB label
-						return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
-							layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-								editor := material.Editor(th, &eq.Editors[index], "val")
-								// update slider values
-								if eq.Editors[index].Text() != eq.EditorValues[index] {
-									if value, err := strconv.ParseFloat(eq.Editors[index].Text(), 64); err == nil {
-										sliderValue := dbToSlider(value)
+					op.Offset(image.Pt(-estimateSize, -estimateSize)).Add(gtx.Ops)
 
-										eq.EditorValues[index] = eq.Editors[index].Text()
-										eq.SliderValues[index] = float32(sliderValue)
-										eq.Sliders[index].Value = float32(sliderValue)
-										if eq.OnValuesChanged != nil {
-											eq.OnValuesChanged(eq.SliderValues)
-										}
-									}
-								}
+					slider := material.Slider(th, &eq.Sliders[i])
 
-								return editor.Layout(gtx)
-							}),
-							layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-								label := material.Label(th, unit.Sp(14), "dB")
-								return label.Layout(gtx)
-							}),
-						)
-					}),
-				)
-			})
+					dims := slider.Layout(gtx)
+
+					dims.Size = image.Pt(dims.Size.Y, dims.Size.X)
+
+					recorded := rec.Stop()
+
+					recorded.Add(gtx.Ops)
+
+					if !eq.Sliders[i].Dragging() {
+						if eq.SliderValues[i] != eq.Sliders[i].Value {
+							eq.SliderValues[i] = eq.Sliders[i].Value
+							eq.EditorValues[i] = sliderToDb(eq.SliderValues[i])
+							eq.Editors[i].SetText(eq.EditorValues[i])
+
+							if eq.OnValuesChanged != nil {
+								eq.OnValuesChanged(eq.SliderValues)
+							}
+						}
+					}
+					return dims
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return layout.Spacer{Height: 8}.Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					// update slider values
+					if eq.Editors[i].Text() != eq.EditorValues[i] {
+						if value, err := strconv.ParseFloat(eq.Editors[i].Text(), 64); err == nil {
+							sliderValue := dbToSlider(value)
+
+							eq.EditorValues[i] = eq.Editors[i].Text()
+							eq.SliderValues[i] = float32(sliderValue)
+							eq.Sliders[i].Value = float32(sliderValue)
+							if eq.OnValuesChanged != nil {
+								eq.OnValuesChanged(eq.SliderValues)
+							}
+						}
+					}
+
+					surfaceStyle := component.Surface(
+						&material.Theme{
+							Palette: material.Palette{
+								Bg: theme.Surface0Color,
+							},
+						})
+
+					surfaceStyle.CornerRadius = 4
+
+					return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+						return layout.UniformInset(4).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+							return material.Editor(th, &eq.Editors[i], "val").Layout(gtx)
+						})
+					})
+				}),
+			)
 		})
 	}
 	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx, children...)
