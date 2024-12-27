@@ -11,10 +11,11 @@ This was reverse engineered from the Earfun App so there might be some innacurac
 # GUI
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/dbde3bed-186f-4e5f-b6e6-de0eed93a2b0" width="45%"></img>
-  <img src="https://github.com/user-attachments/assets/993e820c-8711-406b-9c30-3c2996717f1e" width="45%"></img>
-  <img src="https://github.com/user-attachments/assets/9b14267e-e9ab-4584-9d15-e3b1aae703c4" width="45%"></img>
-  <img src="https://github.com/user-attachments/assets/db8503af-f5eb-4942-8644-2c3930b2eac1" width="45%"></img>
+  <img src="https://github.com/user-attachments/assets/7c788c17-0188-4547-b61e-394c149febbd" width="32%"></img>
+  <img src="https://github.com/user-attachments/assets/dc96bd0d-57df-4493-a8d3-89d4fed1d034" width="32%"></img>
+  <img src="https://github.com/user-attachments/assets/20ec7b4b-3c57-4c41-8abd-4f453c5bcdae" width="32%"></img>
+  <img src="https://github.com/user-attachments/assets/67ce438d-b656-41b2-af23-a19a3e05178e" width="32%"></img>
+  <img src="https://github.com/user-attachments/assets/da0e2bd0-9d50-439a-ba32-61101cab605f" width="32%"></img>
 </p>
 
 # CLI
