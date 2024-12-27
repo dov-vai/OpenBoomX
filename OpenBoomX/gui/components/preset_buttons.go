@@ -65,8 +65,8 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{Left: unit.Dp(8)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						btnStyle := material.IconButton(th, &btn.RemoveButton, theme.DeleteIcon, "Remove")
+						btnStyle.Inset = layout.UniformInset(4)
 						btnStyle.Background = theme.WarningColor
-
 						return btnStyle.Layout(gtx)
 					})
 				}),

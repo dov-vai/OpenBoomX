@@ -36,9 +36,7 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 
 	children = append(children,
 		topBar,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Spacer{Height: unit.Dp(16)}.Layout(gtx)
-		}),
+		layout.Rigid(layout.Spacer{Height: unit.Dp(16)}.Layout),
 	)
 
 	// TODO: better to have separate pages?
@@ -54,6 +52,7 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.EqSaveButton.Layout(ui.ButtonTheme, gtx)
 			}),
+			layout.Rigid(layout.Spacer{Height: unit.Dp(8)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return ui.EqSlider.Layout(ui.Theme, gtx)
 			}),

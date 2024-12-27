@@ -37,7 +37,7 @@ func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dim
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return obxcolorpicker.PickerStyle{
-				Label:         "Lights Color",
+				Label:         "Hex color",
 				Theme:         th,
 				State:         &lp.Picker,
 				MonospaceFace: "Go Mono",

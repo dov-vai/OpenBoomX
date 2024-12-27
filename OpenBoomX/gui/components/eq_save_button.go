@@ -45,7 +45,10 @@ func (btn *EqSaveButton) Layout(th *material.Theme, gtx layout.Context) layout.D
 
 			return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return layout.UniformInset(8).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-					return material.Editor(th, &btn.Editor, "Preset title").Layout(gtx)
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							return material.Editor(th, &btn.Editor, "Preset title").Layout(gtx)
+						}))
 				})
 			})
 		}),
