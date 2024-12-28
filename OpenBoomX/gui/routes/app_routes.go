@@ -3,8 +3,7 @@ package routes
 type AppRoute int
 
 const (
-	Loading AppRoute = iota
-	Oluv
+	Oluv AppRoute = iota
 	Eq
 	EqProfiles
 	Lights

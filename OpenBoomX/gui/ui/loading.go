@@ -39,7 +39,7 @@ func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
 				if ui.appError == nil {
 					return layout.Dimensions{}
 				}
-				return material.Button(ui.theme, &ui.retryConnection, "Retry").Layout(gtx)
+				return material.Button(ui.buttonTheme, &ui.retryConnection, "Retry").Layout(gtx)
 			}),
 		)
 	})

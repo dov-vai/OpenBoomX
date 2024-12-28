@@ -209,7 +209,6 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 			return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				if !ui.loaded {
-
 					return ui.loadingLayout(gtx)
 				}
 				return ui.homeLayout(gtx)
