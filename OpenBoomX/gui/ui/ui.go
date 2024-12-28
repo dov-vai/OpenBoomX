@@ -26,27 +26,27 @@ import (
 var defaultMargin = unit.Dp(10)
 
 type UI struct {
-	Theme             *material.Theme
-	ButtonTheme       *material.Theme
-	EqButtons         *components.EqButtons
-	LightButtons      *components.LightButtons
-	LightPicker       *components.LightPicker
-	BeepSlider        *components.StepSlider
-	OffButton         *components.OffButton
-	PairingButtons    *components.PairingButtons
-	ShutdownSlider    *components.StepSlider
-	EqSlider          *components.EqSlider
-	NavigationBar     *components.NavigationBar
-	StatusBar         *components.StatusBar
-	EqSaveButton      *components.EqSaveButton
-	PresetButtons     *components.PresetButtons
-	EqPresetService   *services.EqPresetService
-	SpeakerController *controllers.SpeakerController
-	SpeakerClient     protocol.ISpeakerClient
-	Loaded            bool
-	Error             error
-	RetryConnection   widget.Clickable
-	CurrentRoute      routes.AppRoute
+	theme             *material.Theme
+	buttonTheme       *material.Theme
+	eqButtons         *components.EqButtons
+	lightButtons      *components.LightButtons
+	lightPicker       *components.LightPicker
+	beepSlider        *components.StepSlider
+	offButton         *components.OffButton
+	pairingButtons    *components.PairingButtons
+	shutdownSlider    *components.StepSlider
+	eqSlider          *components.EqSlider
+	navigationBar     *components.NavigationBar
+	statusBar         *components.StatusBar
+	eqSaveButton      *components.EqSaveButton
+	presetButtons     *components.PresetButtons
+	eqPresetService   *services.EqPresetService
+	speakerController *controllers.SpeakerController
+	speakerClient     protocol.ISpeakerClient
+	loaded            bool
+	appError          error
+	retryConnection   widget.Clickable
+	currentRoute      routes.AppRoute
 }
 
 func NewUI() *UI {
@@ -54,9 +54,9 @@ func NewUI() *UI {
 	_th := material.NewTheme()
 	_th.Shaper = text.NewShaper(text.WithCollection(gofont.Collection()))
 	th := _th.WithPalette(theme.Palette)
-	ui.Theme = &th
+	ui.theme = &th
 	btnTheme := _th.WithPalette(theme.ButtonPalette)
-	ui.ButtonTheme = &btnTheme
+	ui.buttonTheme = &btnTheme
 	go ui.connectSpeaker()
 	//go ui.connectTestSpeaker()
 	return ui
@@ -71,13 +71,13 @@ func (ui *UI) connectTestSpeaker() {
 func (ui *UI) connectSpeaker() {
 	address, err := bluetooth.GetUBoomXAddress()
 	if err != nil {
-		ui.Error = fmt.Errorf("Is speaker not connected?: %w", err)
+		ui.appError = fmt.Errorf("Is speaker not connected?: %w", err)
 		return
 	}
 
 	rfcomm, err := protocol.NewRfcommClient(address)
 	if err != nil {
-		ui.Error = fmt.Errorf("Is device already connected to speaker?: %w", err)
+		ui.appError = fmt.Errorf("Is device already connected to speaker?: %w", err)
 		return
 	}
 
@@ -86,47 +86,47 @@ func (ui *UI) connectSpeaker() {
 }
 
 func (ui *UI) initialize(client protocol.ISpeakerClient) {
-	ui.SpeakerClient = client
-	ui.SpeakerController = controllers.NewSpeakerController(client)
-	ui.EqPresetService = services.NewEqPresetService()
-	ui.EqButtons = components.CreateEQButtons(ui.SpeakerController.OnModeClicked)
-	ui.LightButtons = components.CreateLightButtons(ui.SpeakerController.OnActionClicked)
-	ui.LightPicker = components.CreateLightPicker(ui.SpeakerController.OnColorChanged)
-	ui.BeepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.SpeakerController.OnBeepStepChanged)
-	ui.OffButton = components.CreateOffButton(ui.SpeakerController.OnOffButtonClicked)
-	ui.ShutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.SpeakerController.OnShutdownStepChanged)
-	ui.PairingButtons = components.CreatePairingButtons(ui.SpeakerController.OnPairingOn, ui.SpeakerController.OnPairingOff)
-	ui.NavigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
-		ui.CurrentRoute = route
+	ui.speakerClient = client
+	ui.speakerController = controllers.NewSpeakerController(client)
+	ui.eqPresetService = services.NewEqPresetService()
+	ui.eqButtons = components.CreateEQButtons(ui.speakerController.OnModeClicked)
+	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnActionClicked)
+	ui.lightPicker = components.CreateLightPicker(ui.speakerController.OnColorChanged)
+	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.speakerController.OnBeepStepChanged)
+	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
+	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.speakerController.OnShutdownStepChanged)
+	ui.pairingButtons = components.CreatePairingButtons(ui.speakerController.OnPairingOn, ui.speakerController.OnPairingOff)
+	ui.navigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
+		ui.currentRoute = route
 	})
-	ui.StatusBar = components.CreateStatusBar()
+	ui.statusBar = components.CreateStatusBar()
 	ui.updateBattery()
 
-	ui.EqSlider = components.CreateEqSlider(ui.SpeakerController.OnEqValuesChanged)
+	ui.eqSlider = components.CreateEqSlider(ui.speakerController.OnEqValuesChanged)
 	// set currently active preset if it exists
-	activePreset := ui.EqPresetService.GetActivePreset()
+	activePreset := ui.eqPresetService.GetActivePreset()
 	if activePreset != "" {
-		eqValues, _ := ui.EqPresetService.GetPresetValues(activePreset)
-		err := ui.EqSlider.SetSliderValues(eqValues)
+		eqValues, _ := ui.eqPresetService.GetPresetValues(activePreset)
+		err := ui.eqSlider.SetSliderValues(eqValues)
 		if err != nil {
 			log.Println(err)
 		}
 	}
-	ui.EqPresetService.RegisterListener(ui.EqSlider)
+	ui.eqPresetService.RegisterListener(ui.eqSlider)
 
-	ui.EqSaveButton = components.CreateEqSaveButton(func(title string) {
-		err := ui.EqPresetService.AddPreset(title, ui.EqSlider.GetSliderValues())
+	ui.eqSaveButton = components.CreateEqSaveButton(func(title string) {
+		err := ui.eqPresetService.AddPreset(title, ui.eqSlider.GetSliderValues())
 		if err != nil {
 			log.Println(err)
 		}
 	})
-	ui.EqSaveButton.SetText(activePreset)
-	ui.EqPresetService.RegisterListener(ui.EqSaveButton)
+	ui.eqSaveButton.SetText(activePreset)
+	ui.eqPresetService.RegisterListener(ui.eqSaveButton)
 
-	ui.PresetButtons = components.CreatePresetButtons(ui.EqPresetService)
-	ui.EqPresetService.RegisterListener(ui.PresetButtons)
-	ui.CurrentRoute = routes.Oluv
-	ui.Loaded = true
+	ui.presetButtons = components.CreatePresetButtons(ui.eqPresetService)
+	ui.eqPresetService.RegisterListener(ui.presetButtons)
+	ui.currentRoute = routes.Oluv
+	ui.loaded = true
 }
 
 func (ui *UI) updateBattery() {
@@ -136,11 +136,11 @@ func (ui *UI) updateBattery() {
 		ticker := time.NewTicker(30 * time.Second)
 		defer ticker.Stop()
 
-		batteryLevel, _ := ui.SpeakerClient.ReadBatteryLevel()
+		batteryLevel, _ := ui.speakerClient.ReadBatteryLevel()
 		updateChannel <- batteryLevel
 
 		for range ticker.C {
-			batteryLevel, err := ui.SpeakerClient.ReadBatteryLevel()
+			batteryLevel, err := ui.speakerClient.ReadBatteryLevel()
 			if err != nil {
 				fmt.Println("Error reading battery level:", err)
 			} else {
@@ -151,7 +151,7 @@ func (ui *UI) updateBattery() {
 
 	go func() {
 		for batteryLevel := range updateChannel {
-			ui.StatusBar.BatteryLevel = batteryLevel
+			ui.statusBar.BatteryLevel = batteryLevel
 		}
 	}()
 }
@@ -172,11 +172,11 @@ func (ui *UI) Run(w *app.Window) error {
 }
 
 func (ui *UI) update(gtx layout.Context) {
-	if !ui.Loaded {
+	if !ui.loaded {
 		return
 	}
-	ui.BeepSlider.Update(gtx)
-	ui.ShutdownSlider.Update(gtx)
+	ui.beepSlider.Update(gtx)
+	ui.shutdownSlider.Update(gtx)
 }
 
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
@@ -187,7 +187,7 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 			surfaceStyle := component.Surface(
 				&material.Theme{
 					Palette: material.Palette{
-						Bg: ui.Theme.Bg,
+						Bg: ui.theme.Bg,
 					},
 				})
 
@@ -199,7 +199,7 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 		}),
 		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 			return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-				if !ui.Loaded {
+				if !ui.loaded {
 
 					return ui.loadingLayout(gtx)
 				}
@@ -210,7 +210,7 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 }
 
 func (ui *UI) Dispose() {
-	if ui.SpeakerClient != nil {
-		ui.SpeakerClient.CloseConnection()
+	if ui.speakerClient != nil {
+		ui.speakerClient.CloseConnection()
 	}
 }

@@ -17,9 +17,9 @@ type PresetButtons struct {
 }
 
 type PresetButton struct {
-	widget.Clickable
-	Title        string
-	RemoveButton widget.Clickable
+	clickable    widget.Clickable
+	title        string
+	removeButton widget.Clickable
 }
 
 func CreatePresetButtons(presetService *services.EqPresetService) *PresetButtons {
@@ -38,13 +38,13 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 	activePreset := pb.presetService.GetActivePreset()
 
 	for _, btn := range pb.presetButtons {
-		if btn.Clicked(gtx) {
-			if err := pb.presetService.SetActivePreset(btn.Title); err != nil {
+		if btn.clickable.Clicked(gtx) {
+			if err := pb.presetService.SetActivePreset(btn.title); err != nil {
 				fmt.Printf("Error setting active preset: %v\n", err)
 			}
 		}
-		if btn.RemoveButton.Clicked(gtx) {
-			if err := pb.presetService.DeletePreset(btn.Title); err != nil {
+		if btn.removeButton.Clicked(gtx) {
+			if err := pb.presetService.DeletePreset(btn.title); err != nil {
 				fmt.Printf("Error deleting preset: %v\n", err)
 			}
 		}
@@ -55,8 +55,8 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 		return layout.Inset{Top: unit.Dp(4), Bottom: unit.Dp(4)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					btnStyle := material.Button(th, &btn.Clickable, btn.Title)
-					if btn.Title != activePreset {
+					btnStyle := material.Button(th, &btn.clickable, btn.title)
+					if btn.title != activePreset {
 						btnStyle.Background = theme.Surface0Color
 					}
 
@@ -64,7 +64,7 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Inset{Left: unit.Dp(8)}.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						btnStyle := material.IconButton(th, &btn.RemoveButton, theme.DeleteIcon, "Remove")
+						btnStyle := material.IconButton(th, &btn.removeButton, theme.DeleteIcon, "Remove")
 						btnStyle.Inset = layout.UniformInset(4)
 						btnStyle.Background = theme.WarningColor
 						return btnStyle.Layout(gtx)
@@ -78,7 +78,7 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 func createPresetButtons(presetTitles []string) []*PresetButton {
 	presetButtons := make([]*PresetButton, len(presetTitles))
 	for i, title := range presetTitles {
-		presetButtons[i] = &PresetButton{Title: title}
+		presetButtons[i] = &PresetButton{title: title}
 	}
 	return presetButtons
 }

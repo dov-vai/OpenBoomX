@@ -9,27 +9,27 @@ import (
 )
 
 type EqSaveButton struct {
-	Clickable widget.Clickable
+	clickable widget.Clickable
 	OnSaved   func(title string)
-	Editor    widget.Editor
+	editor    widget.Editor
 }
 
 func CreateEqSaveButton(onSaved func(title string)) *EqSaveButton {
 	return &EqSaveButton{
 		OnSaved: onSaved,
-		Editor:  widget.Editor{SingleLine: true, Submit: true},
+		editor:  widget.Editor{SingleLine: true, Submit: true},
 	}
 }
 
 func (btn *EqSaveButton) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
-	if e, ok := btn.Editor.Update(gtx); ok {
+	if e, ok := btn.editor.Update(gtx); ok {
 		if _, ok := e.(widget.SubmitEvent); ok {
-			btn.OnSaved(btn.Editor.Text())
+			btn.OnSaved(btn.editor.Text())
 		}
 	}
 
-	if btn.Clickable.Clicked(gtx) {
-		btn.OnSaved(btn.Editor.Text())
+	if btn.clickable.Clicked(gtx) {
+		btn.OnSaved(btn.editor.Text())
 	}
 
 	return layout.Flex{Axis: layout.Horizontal, Alignment: layout.Middle}.Layout(gtx,
@@ -47,20 +47,20 @@ func (btn *EqSaveButton) Layout(th *material.Theme, gtx layout.Context) layout.D
 				return layout.UniformInset(8).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							return material.Editor(th, &btn.Editor, "Preset title").Layout(gtx)
+							return material.Editor(th, &btn.editor, "Preset title").Layout(gtx)
 						}))
 				})
 			})
 		}),
 		layout.Rigid(layout.Spacer{Width: 8}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return material.Button(th, &btn.Clickable, "Save").Layout(gtx)
+			return material.Button(th, &btn.clickable, "Save").Layout(gtx)
 		}),
 	)
 }
 
 func (btn *EqSaveButton) SetText(text string) {
-	btn.Editor.SetText(text)
+	btn.editor.SetText(text)
 }
 
 func (btn *EqSaveButton) OnPresetChanged(newPreset string, values []float32) {

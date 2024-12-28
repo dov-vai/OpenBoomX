@@ -15,14 +15,14 @@ type EqButtons struct {
 }
 
 type EQButton struct {
-	Mode      string
-	Clickable widget.Clickable
+	mode      string
+	clickable widget.Clickable
 }
 
 func CreateEQButtons(onModeClicked func(mode string)) *EqButtons {
 	buttons := make([]EQButton, 0, len(protocol.EQModes))
 	for _, mode := range utils.SortedKeysByValue(protocol.EQModes) {
-		buttons = append(buttons, EQButton{Mode: mode})
+		buttons = append(buttons, EQButton{mode: mode})
 	}
 	return &EqButtons{Buttons: buttons, OnModeClicked: onModeClicked}
 }
@@ -32,12 +32,12 @@ func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimen
 
 	for i := range eq.Buttons {
 		btn := &eq.Buttons[i]
-		if btn.Clickable.Clicked(gtx) {
-			eq.OnModeClicked(btn.Mode)
+		if btn.clickable.Clicked(gtx) {
+			eq.OnModeClicked(btn.mode)
 		}
 
 		btnLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return material.Button(th, &btn.Clickable, btn.Mode).Layout(gtx)
+			return material.Button(th, &btn.clickable, btn.mode).Layout(gtx)
 		})
 
 		spacerLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {

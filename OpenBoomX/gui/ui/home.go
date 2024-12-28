@@ -25,10 +25,10 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 		return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return ui.StatusBar.Layout(ui.Theme, gtx)
+					return ui.statusBar.Layout(ui.theme, gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return ui.NavigationBar.Layout(ui.ButtonTheme, gtx)
+					return ui.navigationBar.Layout(ui.buttonTheme, gtx)
 				}),
 			)
 		})
@@ -40,54 +40,54 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 	)
 
 	// TODO: better to have separate pages?
-	switch ui.CurrentRoute {
+	switch ui.currentRoute {
 	case routes.Oluv:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.EqButtons.Layout(ui.ButtonTheme, gtx)
+				return ui.eqButtons.Layout(ui.buttonTheme, gtx)
 			}),
 		)
 	case routes.Eq:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.EqSaveButton.Layout(ui.ButtonTheme, gtx)
+				return ui.eqSaveButton.Layout(ui.buttonTheme, gtx)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(8)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.EqSlider.Layout(ui.Theme, gtx)
+				return ui.eqSlider.Layout(ui.theme, gtx)
 			}),
 		)
 	case routes.EqProfiles:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.PresetButtons.Layout(ui.ButtonTheme, gtx)
+				return ui.presetButtons.Layout(ui.buttonTheme, gtx)
 			}),
 		)
 	case routes.Lights:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.LightButtons.Layout(ui.ButtonTheme, gtx)
+				return ui.lightButtons.Layout(ui.buttonTheme, gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.LightPicker.Layout(ui.Theme, gtx)
+				return ui.lightPicker.Layout(ui.theme, gtx)
 			}),
 		)
 	case routes.Misc:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.BeepSlider.Layout(ui.Theme, gtx)
+				return ui.beepSlider.Layout(ui.theme, gtx)
 			}),
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.PairingButtons.Layout(ui.ButtonTheme, gtx)
+				return ui.pairingButtons.Layout(ui.buttonTheme, gtx)
 			}),
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.ShutdownSlider.Layout(ui.Theme, gtx)
+				return ui.shutdownSlider.Layout(ui.theme, gtx)
 			}),
 
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.OffButton.Layout(ui.ButtonTheme, gtx)
+				return ui.offButton.Layout(ui.buttonTheme, gtx)
 			}),
 		)
 	}

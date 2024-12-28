@@ -9,16 +9,16 @@ import (
 )
 
 type RouteButtonData struct {
-	Label string
-	Route routes.AppRoute
+	label string
+	route routes.AppRoute
 }
 
 var buttons = []RouteButtonData{
-	{Label: "Oluv", Route: routes.Oluv},
-	{Label: "EQ", Route: routes.Eq},
-	{Label: "Profiles", Route: routes.EqProfiles},
-	{Label: "Lights", Route: routes.Lights},
-	{Label: "Misc", Route: routes.Misc},
+	{label: "Oluv", route: routes.Oluv},
+	{label: "EQ", route: routes.Eq},
+	{label: "Profiles", route: routes.EqProfiles},
+	{label: "Lights", route: routes.Lights},
+	{label: "Misc", route: routes.Misc},
 }
 
 type NavigationBar struct {
@@ -45,8 +45,8 @@ func (nb *NavigationBar) Layout(th *material.Theme, gtx layout.Context) layout.D
 
 	for i, btnData := range buttons {
 		clickable := nb.clickables[i]
-		route := btnData.Route
-		label := btnData.Label
+		route := btnData.route
+		label := btnData.label
 
 		if clickable.Clicked(gtx) {
 			nb.OnRouteSelected(route)

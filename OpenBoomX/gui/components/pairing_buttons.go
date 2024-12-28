@@ -8,8 +8,8 @@ import (
 )
 
 type PairingButtons struct {
-	ClickableOn  widget.Clickable
-	ClickableOff widget.Clickable
+	clickableOn  widget.Clickable
+	clickableOff widget.Clickable
 	OnPairingOn  func()
 	OnPairingOff func()
 }
@@ -22,10 +22,10 @@ func CreatePairingButtons(onPairingOn func(), onPairingOff func()) *PairingButto
 }
 
 func (pb *PairingButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
-	if pb.ClickableOn.Clicked(gtx) {
+	if pb.clickableOn.Clicked(gtx) {
 		pb.OnPairingOn()
 	}
-	if pb.ClickableOff.Clicked(gtx) {
+	if pb.clickableOff.Clicked(gtx) {
 		pb.OnPairingOff()
 	}
 
@@ -33,13 +33,13 @@ func (pb *PairingButtons) Layout(th *material.Theme, gtx layout.Context) layout.
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return material.Button(th, &pb.ClickableOn, "Pairing On").Layout(gtx)
+					return material.Button(th, &pb.clickableOn, "Pairing On").Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Spacer{Width: unit.Dp(8)}.Layout(gtx)
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return material.Button(th, &pb.ClickableOff, "Pairing Off").Layout(gtx)
+					return material.Button(th, &pb.clickableOff, "Pairing Off").Layout(gtx)
 				}),
 			)
 		}),

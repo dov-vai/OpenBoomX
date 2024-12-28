@@ -8,8 +8,8 @@ import (
 
 // TODO: refactor this as a component?
 func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
-	if ui.RetryConnection.Clicked(gtx) {
-		ui.Error = nil
+	if ui.retryConnection.Clicked(gtx) {
+		ui.appError = nil
 		go ui.connectSpeaker()
 	}
 
@@ -17,29 +17,29 @@ func (ui *UI) loadingLayout(gtx layout.Context) layout.Dimensions {
 		return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				text := "Loading..."
-				if ui.Error != nil {
-					text = ui.Error.Error()
+				if ui.appError != nil {
+					text = ui.appError.Error()
 				}
-				label := material.H5(ui.Theme, text)
+				label := material.H5(ui.theme, text)
 				return label.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 				return layout.Spacer{Height: unit.Dp(8)}.Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				if ui.Error != nil {
+				if ui.appError != nil {
 					return layout.Dimensions{}
 				}
 
 				gtx.Constraints.Max.X = gtx.Dp(32)
 				gtx.Constraints.Max.Y = gtx.Dp(32)
-				return material.Loader(ui.Theme).Layout(gtx)
+				return material.Loader(ui.theme).Layout(gtx)
 			}),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				if ui.Error == nil {
+				if ui.appError == nil {
 					return layout.Dimensions{}
 				}
-				return material.Button(ui.Theme, &ui.RetryConnection, "Retry").Layout(gtx)
+				return material.Button(ui.theme, &ui.retryConnection, "Retry").Layout(gtx)
 			}),
 		)
 	})

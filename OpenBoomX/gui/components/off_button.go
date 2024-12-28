@@ -7,7 +7,7 @@ import (
 )
 
 type OffButton struct {
-	Clickable       widget.Clickable
+	clickable       widget.Clickable
 	OnButtonClicked func()
 }
 
@@ -16,12 +16,12 @@ func CreateOffButton(OnButtonClicked func()) *OffButton {
 }
 
 func (btn *OffButton) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
-	if btn.Clickable.Clicked(gtx) {
+	if btn.clickable.Clicked(gtx) {
 		btn.OnButtonClicked()
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return material.Button(th, &btn.Clickable, "Power Off").Layout(gtx)
+			return material.Button(th, &btn.clickable, "Power Off").Layout(gtx)
 		}))
 }
