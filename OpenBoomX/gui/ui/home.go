@@ -50,7 +50,15 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 	case routes.Eq:
 		children = append(children,
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-				return ui.eqSaveButton.Layout(ui.buttonTheme, gtx)
+				return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+					layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+						return ui.eqSaveButton.Layout(ui.buttonTheme, gtx)
+					}),
+					layout.Rigid(layout.Spacer{Width: 8}.Layout),
+					layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+						return ui.eqResetButton.Layout(ui.buttonTheme, gtx)
+					}),
+				)
 			}),
 			layout.Rigid(layout.Spacer{Height: unit.Dp(8)}.Layout),
 			layout.Rigid(func(gtx layout.Context) layout.Dimensions {

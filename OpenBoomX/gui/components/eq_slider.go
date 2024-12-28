@@ -21,6 +21,7 @@ type EqSlider struct {
 	OnValuesChanged func(values []float32)
 	sliders         []widget.Float
 	editors         []widget.Editor
+	defaultValues   []float32
 }
 
 func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
@@ -29,22 +30,30 @@ func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
 	editorValues := make([]string, 10)
 	editors := make([]widget.Editor, 10)
 
-	defaultValues := []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
-
 	eq := &EqSlider{
 		sliderValues:    sliderValues,
 		editorValues:    editorValues,
 		OnValuesChanged: onValuesChanged,
 		sliders:         sliders,
 		editors:         editors,
+		defaultValues:   []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5},
 	}
 
-	err := eq.SetSliderValues(defaultValues)
+	err := eq.SetSliderValues(eq.defaultValues)
 	if err != nil {
 		return nil
 	}
 
 	return eq
+}
+
+func (eq *EqSlider) ResetValues() error {
+	err := eq.SetSliderValues(eq.defaultValues)
+	if err != nil {
+		return err
+	}
+	eq.OnValuesChanged(eq.sliderValues)
+	return nil
 }
 
 func (eq *EqSlider) GetSliderValues() []float32 {

@@ -40,6 +40,7 @@ type UI struct {
 	navigationBar     *components.NavigationBar
 	statusBar         *components.StatusBar
 	eqSaveButton      *components.EqSaveButton
+	eqResetButton     *components.EqResetButton
 	presetButtons     *components.PresetButtons
 	eqPresetService   *services.EqPresetService
 	speakerController *controllers.SpeakerController
@@ -114,6 +115,13 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 		}
 	}
 	ui.eqPresetService.RegisterListener(ui.eqSlider)
+
+	ui.eqResetButton = components.CreateEqResetButton(func() {
+		err := ui.eqSlider.ResetValues()
+		if err != nil {
+			log.Println(err)
+		}
+	})
 
 	ui.eqSaveButton = components.CreateEqSaveButton(func(title string) {
 		err := ui.eqPresetService.AddPreset(title, ui.eqSlider.GetSliderValues())
