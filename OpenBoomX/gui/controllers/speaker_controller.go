@@ -18,12 +18,16 @@ type SpeakerController struct {
 	lastColor      color.NRGBA
 	lastColorSolid bool
 	firstColorSet  bool
+	timeoutMap     []string
 }
 
 const debounceDelay = 200 * time.Millisecond
 
 func NewSpeakerController(client protocol.ISpeakerClient) *SpeakerController {
-	return &SpeakerController{client: client}
+	return &SpeakerController{
+		client:     client,
+		timeoutMap: utils.SortedKeysByValue(protocol.ShutdownTimeouts),
+	}
 }
 
 func (sc *SpeakerController) OnModeClicked(mode string) {
@@ -94,8 +98,7 @@ func (sc *SpeakerController) OnPairingOff() {
 }
 
 func (sc *SpeakerController) OnShutdownStepChanged(step int) {
-	timeoutMap := []string{"no", "5m", "10m", "30m", "60m", "90m", "120m"}
-	err := sc.client.SetShutdownTimeout(timeoutMap[step])
+	err := sc.client.SetShutdownTimeout(sc.timeoutMap[step])
 	if err != nil {
 		log.Printf("SetShutdownTimeout failed: %v", err)
 	}

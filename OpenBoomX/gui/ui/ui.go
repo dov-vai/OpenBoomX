@@ -19,6 +19,7 @@ import (
 	"obx/gui/testing"
 	"obx/gui/theme"
 	"obx/protocol"
+	"obx/utils"
 	"obx/utils/bluetooth"
 	"time"
 )
@@ -92,9 +93,9 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.eqButtons = components.CreateEQButtons(ui.speakerController.OnModeClicked)
 	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnActionClicked)
 	ui.lightPicker = components.CreateLightPicker(ui.speakerController.OnColorChanged)
-	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", ui.speakerController.OnBeepStepChanged)
+	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
 	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
-	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", ui.speakerController.OnShutdownStepChanged)
+	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", utils.SortedKeysByValue(protocol.ShutdownTimeouts), ui.speakerController.OnShutdownStepChanged)
 	ui.pairingButtons = components.CreatePairingButtons(ui.speakerController.OnPairingOn, ui.speakerController.OnPairingOff)
 	ui.navigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
 		ui.currentRoute = route
