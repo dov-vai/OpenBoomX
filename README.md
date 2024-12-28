@@ -12,10 +12,10 @@ This was reverse engineered from the Earfun App so there might be some innacurac
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/7c788c17-0188-4547-b61e-394c149febbd" width="32%"></img>
-  <img src="https://github.com/user-attachments/assets/dc96bd0d-57df-4493-a8d3-89d4fed1d034" width="32%"></img>
+  <img src="https://github.com/user-attachments/assets/6a6f25d1-ba90-48f6-9a81-675fe4aaf67a" width="32%"></img>
   <img src="https://github.com/user-attachments/assets/20ec7b4b-3c57-4c41-8abd-4f453c5bcdae" width="32%"></img>
   <img src="https://github.com/user-attachments/assets/67ce438d-b656-41b2-af23-a19a3e05178e" width="32%"></img>
-  <img src="https://github.com/user-attachments/assets/da0e2bd0-9d50-439a-ba32-61101cab605f" width="32%"></img>
+  <img src="https://github.com/user-attachments/assets/a9a03e11-071a-45eb-a3d4-3b7848dd3179" width="32%"></img>
 </p>
 
 # CLI
