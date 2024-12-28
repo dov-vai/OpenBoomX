@@ -3,12 +3,13 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"golang.org/x/exp/maps"
 	"log"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
+
+	"golang.org/x/exp/maps"
 )
 
 type PresetChangeListener interface {
@@ -115,7 +116,6 @@ func (service *EqPresetService) AddPreset(title string, values []float32) error 
 		return fmt.Errorf("error saving presets after adding: %w", err)
 	}
 
-	log.Printf("Added and activated preset: '%s' with values: %v\n", title, values)
 	service.notifyListeners()
 	return nil
 }
@@ -155,7 +155,6 @@ func (service *EqPresetService) SetActivePreset(title string) error {
 		return fmt.Errorf("error saving presets after setting active: %w", err)
 	}
 
-	log.Printf("Set active preset to: '%s'\n", title)
 	service.notifyListeners()
 	return nil
 }
@@ -165,7 +164,11 @@ func (service *EqPresetService) GetPresetValues(title string) ([]float32, error)
 	if !exists {
 		return nil, fmt.Errorf("preset with title '%s' not found", title)
 	}
-	return presetDetails.Values, nil
+
+	valuesCopy := make([]float32, len(presetDetails.Values))
+	copy(valuesCopy, presetDetails.Values)
+
+	return valuesCopy, nil
 }
 
 func (service *EqPresetService) ListPresets() []string {

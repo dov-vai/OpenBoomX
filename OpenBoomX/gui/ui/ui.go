@@ -115,7 +115,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.EqPresetService.RegisterListener(ui.EqSlider)
 
 	ui.EqSaveButton = components.CreateEqSaveButton(func(title string) {
-		err := ui.EqPresetService.AddPreset(title, ui.EqSlider.SliderValues)
+		err := ui.EqPresetService.AddPreset(title, ui.EqSlider.GetSliderValues())
 		if err != nil {
 			log.Println(err)
 		}

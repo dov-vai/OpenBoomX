@@ -16,11 +16,11 @@ import (
 )
 
 type EqSlider struct {
-	SliderValues    []float32
-	EditorValues    []string
+	sliderValues    []float32
+	editorValues    []string
 	OnValuesChanged func(values []float32)
-	Sliders         []widget.Float
-	Editors         []widget.Editor
+	sliders         []widget.Float
+	editors         []widget.Editor
 }
 
 func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
@@ -31,7 +31,13 @@ func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
 
 	defaultValues := []float32{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5}
 
-	eq := &EqSlider{SliderValues: sliderValues, EditorValues: editorValues, OnValuesChanged: onValuesChanged, Sliders: sliders, Editors: editors}
+	eq := &EqSlider{
+		sliderValues:    sliderValues,
+		editorValues:    editorValues,
+		OnValuesChanged: onValuesChanged,
+		sliders:         sliders,
+		editors:         editors,
+	}
 
 	err := eq.SetSliderValues(defaultValues)
 	if err != nil {
@@ -41,6 +47,12 @@ func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
 	return eq
 }
 
+func (eq *EqSlider) GetSliderValues() []float32 {
+	valuesCopy := make([]float32, len(eq.sliderValues))
+	copy(valuesCopy, eq.sliderValues)
+	return valuesCopy
+}
+
 // SetSliderValues sets the eq values, values must have a length of 10 (10 bands)
 func (eq *EqSlider) SetSliderValues(values []float32) error {
 	if len(values) != 10 {
@@ -48,18 +60,18 @@ func (eq *EqSlider) SetSliderValues(values []float32) error {
 	}
 
 	for i := 0; i < 10; i++ {
-		eq.SliderValues[i] = values[i]
-		eq.Sliders[i].Value = values[i]
-		eq.EditorValues[i] = sliderToDb(values[i])
-		eq.Editors[i].SetText(eq.EditorValues[i])
+		eq.sliderValues[i] = values[i]
+		eq.sliders[i].Value = values[i]
+		eq.editorValues[i] = sliderToDb(values[i])
+		eq.editors[i].SetText(eq.editorValues[i])
 	}
 
 	return nil
 }
 
 func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
-	children := make([]layout.FlexChild, len(eq.Sliders))
-	for i := range eq.Sliders {
+	children := make([]layout.FlexChild, len(eq.sliders))
+	for i := range eq.sliders {
 		children[i] = layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 
 			return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
@@ -78,7 +90,7 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 
 					op.Offset(image.Pt(-estimateSize, -estimateSize)).Add(gtx.Ops)
 
-					slider := material.Slider(th, &eq.Sliders[i])
+					slider := material.Slider(th, &eq.sliders[i])
 
 					dims := slider.Layout(gtx)
 
@@ -88,14 +100,14 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 
 					recorded.Add(gtx.Ops)
 
-					if !eq.Sliders[i].Dragging() {
-						if eq.SliderValues[i] != eq.Sliders[i].Value {
-							eq.SliderValues[i] = eq.Sliders[i].Value
-							eq.EditorValues[i] = sliderToDb(eq.SliderValues[i])
-							eq.Editors[i].SetText(eq.EditorValues[i])
+					if !eq.sliders[i].Dragging() {
+						if eq.sliderValues[i] != eq.sliders[i].Value {
+							eq.sliderValues[i] = eq.sliders[i].Value
+							eq.editorValues[i] = sliderToDb(eq.sliderValues[i])
+							eq.editors[i].SetText(eq.editorValues[i])
 
 							if eq.OnValuesChanged != nil {
-								eq.OnValuesChanged(eq.SliderValues)
+								eq.OnValuesChanged(eq.sliderValues)
 							}
 						}
 					}
@@ -106,15 +118,15 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					// update slider values
-					if eq.Editors[i].Text() != eq.EditorValues[i] {
-						if value, err := strconv.ParseFloat(eq.Editors[i].Text(), 64); err == nil {
+					if eq.editors[i].Text() != eq.editorValues[i] {
+						if value, err := strconv.ParseFloat(eq.editors[i].Text(), 64); err == nil {
 							sliderValue := dbToSlider(value)
 
-							eq.EditorValues[i] = eq.Editors[i].Text()
-							eq.SliderValues[i] = float32(sliderValue)
-							eq.Sliders[i].Value = float32(sliderValue)
+							eq.editorValues[i] = eq.editors[i].Text()
+							eq.sliderValues[i] = float32(sliderValue)
+							eq.sliders[i].Value = float32(sliderValue)
 							if eq.OnValuesChanged != nil {
-								eq.OnValuesChanged(eq.SliderValues)
+								eq.OnValuesChanged(eq.sliderValues)
 							}
 						}
 					}
@@ -130,7 +142,7 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 
 					return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.UniformInset(4).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							return material.Editor(th, &eq.Editors[i], "val").Layout(gtx)
+							return material.Editor(th, &eq.editors[i], "val").Layout(gtx)
 						})
 					})
 				}),
@@ -149,7 +161,7 @@ func (eq *EqSlider) OnPresetChanged(newPreset string, values []float32) {
 	if err != nil {
 		log.Println(err)
 	}
-	eq.OnValuesChanged(eq.SliderValues)
+	eq.OnValuesChanged(eq.sliderValues)
 }
 
 // dbToSlider maps dB value back to 0-1 range for the slider
