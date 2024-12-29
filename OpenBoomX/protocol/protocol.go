@@ -17,9 +17,14 @@ var EQModes = map[string]string{
 }
 
 // Light Actions
+const (
+	LightDefault = "default"
+	LightOff     = "off"
+)
+
 var LightActions = map[string]string{
-	"default": "efb095040000000000fe",
-	"off":     "efb095040100000000fe",
+	LightDefault: "efb095040000000000fe",
+	LightOff:     "efb095040100000000fe",
 }
 
 // Shutdown Timeout Modes
@@ -35,9 +40,14 @@ var ShutdownTimeouts = map[string]string{
 
 const SpeakerPowerOff = "efb025010102fe"
 
+const (
+	PairingOn  = "on"
+	PairingOff = "off"
+)
+
 var BluetoothPairing = map[string]string{
-	"on":  "efb035010102fe",
-	"off": "efb035010001fe",
+	PairingOn:  "efb035010102fe",
+	PairingOff: "efb035010001fe",
 }
 
 // Beep Volume Levels

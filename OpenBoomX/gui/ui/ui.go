@@ -60,6 +60,8 @@ func NewUI() *UI {
 	btnTheme := _th.WithPalette(theme.ButtonPalette)
 	ui.buttonTheme = &btnTheme
 	go ui.connectSpeaker()
+	// add comments to line above and uncomment below
+	// to connect a mock speaker for GUI development
 	//go ui.connectTestSpeaker()
 	return ui
 }
@@ -91,8 +93,8 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerClient = client
 	ui.speakerController = controllers.NewSpeakerController(client)
 	ui.eqPresetService = services.NewEqPresetService()
-	ui.eqButtons = components.CreateEQButtons(ui.speakerController.OnModeClicked)
-	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnActionClicked)
+	ui.eqButtons = components.CreateEQButtons(utils.SortedKeysByValue(protocol.EQModes), ui.speakerController.OnModeClicked)
+	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnLightDefaultClicked, ui.speakerController.OnLightOffClicked)
 	ui.lightPicker = components.CreateLightPicker(ui.speakerController.OnColorChanged)
 	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
 	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)

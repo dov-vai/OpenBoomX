@@ -8,24 +8,25 @@ import (
 )
 
 type LightButtons struct {
-	defaultButton   widget.Clickable
-	offButton       widget.Clickable
-	OnActionClicked func(action string)
+	defaultButton    widget.Clickable
+	offButton        widget.Clickable
+	OnDefaultClicked func()
+	OnOffClicked     func()
 }
 
-func CreateLightButtons(onActionClicked func(action string)) *LightButtons {
+func CreateLightButtons(onDefaultClicked func(), onOffClicked func()) *LightButtons {
 	return &LightButtons{
-		OnActionClicked: onActionClicked,
+		OnDefaultClicked: onDefaultClicked,
+		OnOffClicked:     onOffClicked,
 	}
 }
 
 func (lb *LightButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	if lb.offButton.Clicked(gtx) {
-		// TODO: fix hardcodes everywhere..
-		lb.OnActionClicked("off")
+		lb.OnOffClicked()
 	}
 	if lb.defaultButton.Clicked(gtx) {
-		lb.OnActionClicked("default")
+		lb.OnDefaultClicked()
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,

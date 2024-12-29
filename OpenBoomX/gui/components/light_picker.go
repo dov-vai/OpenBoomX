@@ -15,11 +15,17 @@ type LightPicker struct {
 	OnColorChanged    func(color color.NRGBA, solidColor bool)
 }
 
+// keys for radio buttons
+const (
+	dancingLights = "dancing"
+	solidLights   = "solid"
+)
+
 func CreateLightPicker(onColorChanged func(color color.NRGBA, solidColor bool)) *LightPicker {
 	picker := &LightPicker{}
 	picker.currentColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
 	picker.picker.SetColor(picker.currentColor)
-	picker.radioButtonsGroup.Value = "dancing"
+	picker.radioButtonsGroup.Value = dancingLights
 	picker.OnColorChanged = onColorChanged
 	return picker
 }
@@ -28,7 +34,7 @@ func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dim
 	if lp.picker.Update(gtx) || lp.radioButtonsGroup.Update(gtx) {
 		lp.currentColor = lp.picker.Color()
 		solidColor := false
-		if lp.radioButtonsGroup.Value == "solid" {
+		if lp.radioButtonsGroup.Value == solidLights {
 			solidColor = true
 		}
 		lp.OnColorChanged(lp.currentColor, solidColor)
@@ -46,10 +52,10 @@ func (lp *LightPicker) Layout(th *material.Theme, gtx layout.Context) layout.Dim
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return material.RadioButton(th, &lp.radioButtonsGroup, "dancing", "Dancing").Layout(gtx)
+					return material.RadioButton(th, &lp.radioButtonsGroup, dancingLights, "Dancing").Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-					return material.RadioButton(th, &lp.radioButtonsGroup, "solid", "Solid").Layout(gtx)
+					return material.RadioButton(th, &lp.radioButtonsGroup, solidLights, "Solid").Layout(gtx)
 				}),
 			)
 		}),

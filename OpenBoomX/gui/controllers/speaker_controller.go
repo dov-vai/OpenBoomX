@@ -37,15 +37,24 @@ func (sc *SpeakerController) OnModeClicked(mode string) {
 	}
 }
 
-func (sc *SpeakerController) OnActionClicked(action string) {
-	err := sc.client.HandleLightAction(action, false)
+func (sc *SpeakerController) OnLightOffClicked() {
+	err := sc.client.HandleLightAction(protocol.LightOff, false)
 	if err != nil {
-		log.Printf("HandleLightAction failed: %v", err)
+		log.Printf("OnLightOffClicked failed: %v", err)
+	}
+}
+
+func (sc *SpeakerController) OnLightDefaultClicked() {
+	err := sc.client.HandleLightAction(protocol.LightDefault, false)
+	if err != nil {
+		log.Printf("OnLightDefaultClicked failed: %v", err)
 	}
 }
 
 func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) {
 	// ignore the first update coming from the picker
+	// it would set the default light picker color
+	// on the speaker on app launch, we don't want that
 	if !sc.firstColorSet {
 		sc.firstColorSet = true
 		return
@@ -84,14 +93,14 @@ func (sc *SpeakerController) OnOffButtonClicked() {
 }
 
 func (sc *SpeakerController) OnPairingOn() {
-	err := sc.client.SetBluetoothPairing("on")
+	err := sc.client.SetBluetoothPairing(protocol.PairingOn)
 	if err != nil {
 		log.Printf("SetBluetoothPairing failed: %v", err)
 	}
 }
 
 func (sc *SpeakerController) OnPairingOff() {
-	err := sc.client.SetBluetoothPairing("off")
+	err := sc.client.SetBluetoothPairing(protocol.PairingOff)
 	if err != nil {
 		log.Printf("SetBluetoothPairing failed: %v", err)
 	}

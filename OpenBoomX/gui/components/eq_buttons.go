@@ -5,8 +5,6 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
-	"obx/protocol"
-	"obx/utils"
 )
 
 type EqButtons struct {
@@ -19,9 +17,9 @@ type EQButton struct {
 	clickable widget.Clickable
 }
 
-func CreateEQButtons(onModeClicked func(mode string)) *EqButtons {
-	buttons := make([]EQButton, 0, len(protocol.EQModes))
-	for _, mode := range utils.SortedKeysByValue(protocol.EQModes) {
+func CreateEQButtons(modes []string, onModeClicked func(mode string)) *EqButtons {
+	buttons := make([]EQButton, 0, len(modes))
+	for _, mode := range modes {
 		buttons = append(buttons, EQButton{mode: mode})
 	}
 	return &EqButtons{Buttons: buttons, OnModeClicked: onModeClicked}
