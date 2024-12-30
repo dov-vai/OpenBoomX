@@ -352,9 +352,9 @@ func (p PickerStyle) layoutSliders(gtx C) D {
 		layout.Rigid(func(gtx C) D {
 			return p.layoutSlider(gtx, &p.B, "B:", valueString(p.Blue()))
 		}),
-		layout.Rigid(func(gtx C) D {
-			return p.layoutSlider(gtx, &p.A, "A:", valueString(p.Alpha()))
-		}),
+		//layout.Rigid(func(gtx C) D {
+		//	return p.layoutSlider(gtx, &p.A, "A:", valueString(p.Alpha()))
+		//}),
 	)
 }
 
