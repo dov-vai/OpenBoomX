@@ -13,6 +13,7 @@ import (
 	"gioui.org/x/component"
 	"log"
 	"obx/gui/components"
+	"obx/gui/constants"
 	"obx/gui/controllers"
 	"obx/gui/routes"
 	"obx/gui/services"
@@ -42,6 +43,7 @@ type UI struct {
 	eqSaveButton      *components.EqSaveButton
 	eqResetButton     *components.EqResetButton
 	presetButtons     *components.PresetButtons
+	colorButtons      *components.ColorButtons
 	eqPresetService   *services.EqPresetService
 	speakerController *controllers.SpeakerController
 	speakerClient     protocol.ISpeakerClient
@@ -96,6 +98,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.eqButtons = components.CreateEQButtons(utils.SortedKeysByValue(protocol.EQModes), ui.speakerController.OnModeClicked)
 	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnLightDefaultClicked, ui.speakerController.OnLightOffClicked)
 	ui.lightPicker = components.CreateLightPicker(ui.speakerController.OnColorChanged)
+	ui.colorButtons = components.CreateColorButtons(constants.DefaultColorPresets, 10, ui.lightPicker.SetColor)
 	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
 	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
 	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", utils.SortedKeysByValue(protocol.ShutdownTimeouts), ui.speakerController.OnShutdownStepChanged)

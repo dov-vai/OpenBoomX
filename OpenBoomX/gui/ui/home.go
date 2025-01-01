@@ -98,6 +98,9 @@ func (ui *UI) constructLightsPage() []layout.FlexChild {
 			return ui.lightButtons.Layout(ui.buttonTheme, gtx)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.colorButtons.Layout(ui.theme, gtx)
+		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return ui.lightPicker.Layout(ui.theme, gtx)
 		}),
 	)
