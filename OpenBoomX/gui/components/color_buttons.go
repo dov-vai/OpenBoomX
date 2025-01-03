@@ -26,7 +26,7 @@ func CreateColorButtons(colors []color.NRGBA, buttonsPerRow int, onColorClicked 
 func (cb *ColorButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	var buttons = cb.buildColorButtons(th, gtx)
 
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx, cb.buildButtonRows(buttons)...)
+	return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx, cb.buildButtonColumns(buttons)...)
 }
 
 func (cb *ColorButtons) buildColorButtons(th *material.Theme, gtx layout.Context) []layout.FlexChild {
@@ -49,19 +49,23 @@ func (cb *ColorButtons) buildColorButtons(th *material.Theme, gtx layout.Context
 	return buttons
 }
 
-func (cb *ColorButtons) buildButtonRows(buttons []layout.FlexChild) []layout.FlexChild {
+func (cb *ColorButtons) buildButtonColumns(buttons []layout.FlexChild) []layout.FlexChild {
 	numRows := (len(buttons) + cb.ButtonsPerRow - 1) / cb.ButtonsPerRow
-	var rows = make([]layout.FlexChild, numRows)
-	for i := 0; i < numRows; i++ {
-		start := i * cb.ButtonsPerRow
-		end := min((i+1)*cb.ButtonsPerRow, len(buttons))
+	var columns []layout.FlexChild
 
-		rowButtons := buttons[start:end]
+	for col := 0; col < cb.ButtonsPerRow; col++ {
+		var columnButtons []layout.FlexChild
+		for row := 0; row < numRows; row++ {
+			index := row*cb.ButtonsPerRow + col
+			if index < len(buttons) {
+				columnButtons = append(columnButtons, buttons[index])
+			}
+		}
 
-		rows[i] = layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx, rowButtons...)
-		})
+		columns = append(columns, layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx, columnButtons...)
+		}))
 	}
 
-	return rows
+	return columns
 }
