@@ -10,7 +10,6 @@ import (
 
 type LightPicker struct {
 	picker            obxcolorpicker.State
-	currentColor      color.NRGBA
 	radioButtonsGroup widget.Enum
 	OnColorChanged    func(color color.NRGBA, solidColor bool)
 }
@@ -23,8 +22,7 @@ const (
 
 func CreateLightPicker(onColorChanged func(color color.NRGBA, solidColor bool)) *LightPicker {
 	picker := &LightPicker{}
-	picker.currentColor = color.NRGBA{R: 0, G: 0, B: 0, A: 255}
-	picker.picker.SetColor(picker.currentColor)
+	picker.picker.SetColor(color.NRGBA{R: 0, G: 0, B: 0, A: 255})
 	picker.radioButtonsGroup.Value = dancingLights
 	picker.OnColorChanged = onColorChanged
 	return picker
@@ -62,11 +60,14 @@ func (lp *LightPicker) SetColor(color color.NRGBA) {
 	lp.sendUpdate()
 }
 
+func (lp *LightPicker) GetColor() color.NRGBA {
+	return lp.picker.Color()
+}
+
 func (lp *LightPicker) sendUpdate() {
-	lp.currentColor = lp.picker.Color()
 	solidColor := false
 	if lp.radioButtonsGroup.Value == solidLights {
 		solidColor = true
 	}
-	lp.OnColorChanged(lp.currentColor, solidColor)
+	lp.OnColorChanged(lp.picker.Color(), solidColor)
 }

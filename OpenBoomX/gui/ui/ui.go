@@ -11,9 +11,9 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"gioui.org/x/component"
+	"image/color"
 	"log"
 	"obx/gui/components"
-	"obx/gui/constants"
 	"obx/gui/controllers"
 	"obx/gui/routes"
 	"obx/gui/services"
@@ -28,29 +28,32 @@ import (
 var defaultMargin = unit.Dp(10)
 
 type UI struct {
-	theme             *material.Theme
-	buttonTheme       *material.Theme
-	eqButtons         *components.EqButtons
-	lightButtons      *components.LightButtons
-	lightPicker       *components.LightPicker
-	beepSlider        *components.StepSlider
-	offButton         *components.OffButton
-	pairingButtons    *components.PairingButtons
-	shutdownSlider    *components.StepSlider
-	eqSlider          *components.EqSlider
-	navigationBar     *components.NavigationBar
-	statusBar         *components.StatusBar
-	eqSaveButton      *components.EqSaveButton
-	eqResetButton     *components.EqResetButton
-	presetButtons     *components.PresetButtons
-	colorButtons      *components.ColorButtons
-	eqPresetService   *services.EqPresetService
-	speakerController *controllers.SpeakerController
-	speakerClient     protocol.ISpeakerClient
-	loaded            bool
-	appError          error
-	retryConnection   widget.Clickable
-	currentRoute      routes.AppRoute
+	theme              *material.Theme
+	buttonTheme        *material.Theme
+	eqButtons          *components.EqButtons
+	lightButtons       *components.LightButtons
+	lightPicker        *components.LightPicker
+	beepSlider         *components.StepSlider
+	offButton          *components.OffButton
+	pairingButtons     *components.PairingButtons
+	shutdownSlider     *components.StepSlider
+	eqSlider           *components.EqSlider
+	navigationBar      *components.NavigationBar
+	statusBar          *components.StatusBar
+	eqSaveButton       *components.EqSaveButton
+	eqResetButton      *components.EqResetButton
+	presetButtons      *components.PresetButtons
+	colorButtons       *components.ColorButtons
+	colorEditButtons   *components.ColorEditButtons
+	eqPresetService    *services.EqPresetService
+	colorPresetService *services.ColorPresetService
+	speakerController  *controllers.SpeakerController
+	speakerClient      protocol.ISpeakerClient
+	loaded             bool
+	colorRemoveMode    bool
+	appError           error
+	retryConnection    widget.Clickable
+	currentRoute       routes.AppRoute
 }
 
 func NewUI() *UI {
@@ -95,10 +98,32 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerClient = client
 	ui.speakerController = controllers.NewSpeakerController(client)
 	ui.eqPresetService = services.NewEqPresetService()
+	ui.colorPresetService = services.NewColorPresetService()
 	ui.eqButtons = components.CreateEQButtons(utils.SortedKeysByValue(protocol.EQModes), ui.speakerController.OnModeClicked)
 	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnLightDefaultClicked, ui.speakerController.OnLightOffClicked)
 	ui.lightPicker = components.CreateLightPicker(ui.speakerController.OnColorChanged)
-	ui.colorButtons = components.CreateColorButtons(constants.DefaultColorPresets, 10, ui.lightPicker.SetColor)
+	ui.colorButtons = components.CreateColorButtons(ui.colorPresetService.ListColors(), 10, func(color color.NRGBA) {
+		if ui.colorRemoveMode {
+			err := ui.colorPresetService.DeleteColor(color)
+			if err != nil {
+				log.Printf("Error deleting color: %v", err)
+			}
+			return
+		}
+		ui.lightPicker.SetColor(color)
+	})
+	ui.colorPresetService.RegisterListener(ui.colorButtons)
+	ui.colorEditButtons = components.CreateColorEditButtons(
+		func() {
+			err := ui.colorPresetService.AddColor(ui.lightPicker.GetColor())
+			if err != nil {
+				log.Printf("Error adding color: %v", err)
+			}
+		},
+		func(on bool) {
+			ui.colorRemoveMode = on
+		})
+
 	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
 	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
 	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", utils.SortedKeysByValue(protocol.ShutdownTimeouts), ui.speakerController.OnShutdownStepChanged)

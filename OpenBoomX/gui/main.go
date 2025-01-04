@@ -4,6 +4,7 @@ import (
 	"gioui.org/app"
 	"gioui.org/unit"
 	"log"
+	"obx/gui/constants"
 	"obx/gui/ui"
 	"os"
 )
@@ -16,7 +17,7 @@ func main() {
 	go func() {
 		w := new(app.Window)
 		w.Option(
-			app.Title("OpenBoomX"),
+			app.Title(constants.AppName),
 			app.Size(unit.Dp(580), unit.Dp(430)),
 		)
 		if err := ui.Run(w); err != nil {

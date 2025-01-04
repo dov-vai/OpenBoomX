@@ -37,3 +37,4 @@ var ButtonPalette = material.Palette{
 
 var DeleteIcon, _ = widget.NewIcon(icons.ActionDelete)
 var BatteryIcon, _ = widget.NewIcon(icons.DeviceBattery50)
+var AddIcon, _ = widget.NewIcon(icons.ContentAdd)

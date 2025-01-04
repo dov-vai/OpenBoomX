@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"obx/gui/constants"
 	"os"
 	"path/filepath"
 	"sort"
@@ -41,8 +42,8 @@ func NewEqPresetService() *EqPresetService {
 	}
 
 	service := &EqPresetService{
-		configDir:      filepath.Join(configDir, "OpenBoomX"),
-		presetFilePath: filepath.Join(configDir, "OpenBoomX", "presets.json"),
+		configDir:      filepath.Join(configDir, constants.AppName),
+		presetFilePath: filepath.Join(configDir, constants.AppName, "presets.json"),
 		presets:        make(map[string]PresetDetails),
 		listeners:      []PresetChangeListener{},
 	}
@@ -137,7 +138,6 @@ func (service *EqPresetService) DeletePreset(title string) error {
 		return fmt.Errorf("error saving presets after deletion: %w", err)
 	}
 
-	log.Printf("Deleted preset: '%s'\n", title)
 	return nil
 }
 

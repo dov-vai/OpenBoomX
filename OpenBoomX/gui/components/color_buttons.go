@@ -8,18 +8,21 @@ import (
 )
 
 type ColorButtons struct {
-	presetButtons  []widget.Clickable
-	colors         []color.NRGBA
+	buttons        []*ColorButton
 	list           *widget.List
 	buttonDims     layout.Dimensions
 	OnColorClicked func(color color.NRGBA)
 	ButtonsPerRow  int
 }
 
+type ColorButton struct {
+	clickable widget.Clickable
+	color     color.NRGBA
+}
+
 func CreateColorButtons(colors []color.NRGBA, buttonsPerRow int, onColorClicked func(color color.NRGBA)) *ColorButtons {
 	return &ColorButtons{
-		presetButtons:  make([]widget.Clickable, len(colors)),
-		colors:         colors,
+		buttons:        createColorButtons(colors),
 		list:           &widget.List{List: layout.List{Axis: layout.Vertical}},
 		OnColorClicked: onColorClicked,
 		ButtonsPerRow:  buttonsPerRow,
@@ -41,18 +44,19 @@ func (cb *ColorButtons) Layout(th *material.Theme, gtx layout.Context) layout.Di
 				Spacing: layout.SpaceBetween,
 			}.Layout(gtx, cb.buildButtonColumns(index, buttons)...)
 		})
+
 }
 
 func (cb *ColorButtons) buildColorButtons(th *material.Theme, gtx layout.Context) []layout.FlexChild {
-	var buttons = make([]layout.FlexChild, len(cb.presetButtons))
-	for i, c := range cb.colors {
-		if cb.presetButtons[i].Clicked(gtx) {
-			cb.OnColorClicked(c)
+	var buttons = make([]layout.FlexChild, len(cb.buttons))
+	for i, btn := range cb.buttons {
+		if btn.clickable.Clicked(gtx) {
+			cb.OnColorClicked(btn.color)
 		}
 
-		btnStyle := material.IconButton(th, &cb.presetButtons[i], nil, "")
+		btnStyle := material.IconButton(th, &btn.clickable, nil, "")
 		btnStyle.Inset = layout.UniformInset(4)
-		btnStyle.Background = c
+		btnStyle.Background = btn.color
 		buttons[i] = layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			cb.buttonDims = layout.UniformInset(8).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				return btnStyle.Layout(gtx)
@@ -89,4 +93,18 @@ func (cb *ColorButtons) buildButtonColumns(rowIndex int, buttons []layout.FlexCh
 
 func (cb *ColorButtons) getRowsNum(buttons []layout.FlexChild) int {
 	return (len(buttons) + cb.ButtonsPerRow - 1) / cb.ButtonsPerRow
+}
+
+func createColorButtons(colors []color.NRGBA) []*ColorButton {
+	buttons := make([]*ColorButton, len(colors))
+	for i, c := range colors {
+		buttons[i] = &ColorButton{
+			color: c,
+		}
+	}
+	return buttons
+}
+
+func (cb *ColorButtons) OnColorListChanged(colors []color.NRGBA) {
+	cb.buttons = createColorButtons(colors)
 }
