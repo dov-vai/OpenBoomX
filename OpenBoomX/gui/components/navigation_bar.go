@@ -11,14 +11,15 @@ import (
 type RouteButtonData struct {
 	label string
 	route routes.AppRoute
+	icon  *widget.Icon
 }
 
 var buttons = []RouteButtonData{
-	{label: "Oluv", route: routes.Oluv},
-	{label: "EQ", route: routes.Eq},
-	{label: "Profiles", route: routes.EqProfiles},
-	{label: "Lights", route: routes.Lights},
-	{label: "Misc", route: routes.Misc},
+	{label: "Oluv", route: routes.Oluv, icon: theme.StarIcon},
+	{label: "EQ", route: routes.Eq, icon: theme.TuneIcon},
+	{label: "Profiles", route: routes.EqProfiles, icon: theme.ListIcon},
+	{label: "Lights", route: routes.Lights, icon: theme.LightIcon},
+	{label: "Misc", route: routes.Misc, icon: theme.SettingsIcon},
 }
 
 type NavigationBar struct {
@@ -53,7 +54,15 @@ func (nb *NavigationBar) Layout(th *material.Theme, gtx layout.Context) layout.D
 		}
 
 		routeButtons[i] = layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			return material.Button(&navTheme, clickable, label).Layout(gtx)
+			return layout.Flex{Axis: layout.Vertical, Alignment: layout.Middle}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					gtx.Constraints.Max.X = gtx.Dp(20)
+					return btnData.icon.Layout(gtx, th.ContrastFg)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return material.Button(&navTheme, clickable, label).Layout(gtx)
+				}),
+			)
 		})
 	}
 
