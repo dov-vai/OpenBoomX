@@ -108,7 +108,15 @@ func (ui *UI) constructLightsPage() []layout.FlexChild {
 			)
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return ui.lightPicker.Layout(ui.theme, gtx)
+			return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceEvenly}.Layout(gtx,
+				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					return ui.lightPicker.Layout(ui.theme, gtx)
+				}),
+				layout.Rigid(layout.Spacer{Width: 16}.Layout),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return ui.colorWheel.Layout(gtx, float32(gtx.Constraints.Max.X)/8)
+				}),
+			)
 		}),
 	)
 

@@ -45,6 +45,7 @@ type UI struct {
 	presetButtons      *components.PresetButtons
 	colorButtons       *components.ColorButtons
 	colorEditButtons   *components.ColorEditButtons
+	colorWheel         *components.ColorWheel
 	eqPresetService    *services.EqPresetService
 	colorPresetService *services.ColorPresetService
 	speakerController  *controllers.SpeakerController
@@ -124,6 +125,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 			ui.colorRemoveMode = on
 		})
 
+	ui.colorWheel = components.CreateColorWheel(ui.lightPicker.SetColor)
 	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
 	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
 	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", utils.SortedKeysByValue(protocol.ShutdownTimeouts), ui.speakerController.OnShutdownStepChanged)
