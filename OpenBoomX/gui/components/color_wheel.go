@@ -18,6 +18,7 @@ const eventTag = "ColorWheel"
 
 type ColorWheel struct {
 	prevMaxX        int
+	cursorPos       f32.Point
 	image           *image.RGBA
 	colorWheelImage *image.RGBA
 	cursorImage     *image.RGBA
@@ -32,9 +33,12 @@ func (cw *ColorWheel) Layout(gtx layout.Context, radius float32) layout.Dimensio
 	// regenerate if window width changed
 	if gtx.Constraints.Max.X != cw.prevMaxX {
 		cw.colorWheelImage = drawColorWheel(radius)
-		// FIXME: should maintain the cursor position when radius changes
-		cw.image = cw.colorWheelImage
 		cw.cursorImage = drawCursor(radius/12, color.RGBA{R: 255, G: 255, B: 255, A: 255})
+		cw.image = drawCursorPosition(
+			f32.Point{
+				X: cw.cursorPos.X*radius + radius,
+				Y: cw.cursorPos.Y*radius + radius},
+			cw.cursorImage, cw.colorWheelImage)
 		cw.prevMaxX = gtx.Constraints.Max.X
 	}
 
@@ -59,6 +63,7 @@ func (cw *ColorWheel) Layout(gtx layout.Context, radius float32) layout.Dimensio
 			default:
 				if rgb := cursorPosToRgb(x.Position, radius); rgb != nil {
 					cw.OnColorChanged(*rgb)
+					cw.cursorPos = normalizeCursorPos(x.Position, radius)
 					cw.image = drawCursorPosition(x.Position, cw.cursorImage, cw.colorWheelImage)
 				}
 			}
@@ -73,6 +78,10 @@ func (cw *ColorWheel) Layout(gtx layout.Context, radius float32) layout.Dimensio
 	return layout.Dimensions{
 		Size: image.Point{X: gtx.Constraints.Min.Y, Y: gtx.Constraints.Min.Y},
 	}
+}
+
+func normalizeCursorPos(cursorPos f32.Point, radius float32) f32.Point {
+	return f32.Point{X: (cursorPos.X - radius) / radius, Y: (cursorPos.Y - radius) / radius}
 }
 
 func drawCursorPosition(pos f32.Point, cursorImg *image.RGBA, imgData *image.RGBA) *image.RGBA {
