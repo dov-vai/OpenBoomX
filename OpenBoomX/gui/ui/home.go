@@ -78,7 +78,7 @@ func (ui *UI) constructEqPage() []layout.FlexChild {
 	return children
 }
 
-func (ui *UI) constructProfilesPage() []layout.FlexChild {
+func (ui *UI) constructPresetsPage() []layout.FlexChild {
 	var children []layout.FlexChild
 
 	children = append(children,
@@ -157,8 +157,8 @@ func (ui *UI) homeLayout(gtx layout.Context) layout.Dimensions {
 		children = append(children, ui.constructOluvPage()...)
 	case routes.Eq:
 		children = append(children, ui.constructEqPage()...)
-	case routes.EqProfiles:
-		children = append(children, ui.constructProfilesPage()...)
+	case routes.EqPresets:
+		children = append(children, ui.constructPresetsPage()...)
 	case routes.Lights:
 		children = append(children, ui.constructLightsPage()...)
 	case routes.Misc:

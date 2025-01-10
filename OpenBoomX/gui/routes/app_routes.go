@@ -5,7 +5,7 @@ type AppRoute int
 const (
 	Oluv AppRoute = iota
 	Eq
-	EqProfiles
+	EqPresets
 	Lights
 	Misc
 )

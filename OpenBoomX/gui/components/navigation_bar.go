@@ -17,7 +17,7 @@ type RouteButtonData struct {
 var buttons = []RouteButtonData{
 	{label: "Oluv", route: routes.Oluv, icon: theme.StarIcon},
 	{label: "EQ", route: routes.Eq, icon: theme.TuneIcon},
-	{label: "Profiles", route: routes.EqProfiles, icon: theme.ListIcon},
+	{label: "Presets", route: routes.EqPresets, icon: theme.ListIcon},
 	{label: "Lights", route: routes.Lights, icon: theme.LightIcon},
 	{label: "Misc", route: routes.Misc, icon: theme.SettingsIcon},
 }
