@@ -5,6 +5,8 @@ import (
 	"gioui.org/unit"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type EqButtons struct {
@@ -28,6 +30,8 @@ func CreateEQButtons(modes []string, onModeClicked func(mode string)) *EqButtons
 func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	var buttons []layout.FlexChild
 
+	caser := cases.Title(language.English)
+
 	for i := range eq.Buttons {
 		btn := &eq.Buttons[i]
 		if btn.clickable.Clicked(gtx) {
@@ -35,7 +39,7 @@ func (eq *EqButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimen
 		}
 
 		btnLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return material.Button(th, &btn.clickable, btn.mode).Layout(gtx)
+			return material.Button(th, &btn.clickable, caser.String(btn.mode)).Layout(gtx)
 		})
 
 		spacerLayout := layout.Rigid(func(gtx layout.Context) layout.Dimensions {
