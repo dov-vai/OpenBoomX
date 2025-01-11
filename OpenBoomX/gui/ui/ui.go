@@ -46,6 +46,7 @@ type UI struct {
 	colorButtons       *components.ColorButtons
 	colorEditButtons   *components.ColorEditButtons
 	colorWheel         *components.ColorWheel
+	snackbar           *components.Snackbar
 	eqPresetService    *services.EqPresetService
 	colorPresetService *services.ColorPresetService
 	speakerController  *controllers.SpeakerController
@@ -97,7 +98,8 @@ func (ui *UI) connectSpeaker() {
 
 func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerClient = client
-	ui.speakerController = controllers.NewSpeakerController(client)
+	ui.snackbar = components.CreateSnackbar()
+	ui.speakerController = controllers.NewSpeakerController(client, ui.snackbar)
 	ui.eqPresetService = services.NewEqPresetService()
 	ui.colorPresetService = services.NewColorPresetService()
 	ui.eqButtons = components.CreateEQButtons(utils.SortedKeysByValue(protocol.EQModes), ui.speakerController.OnModeClicked)
@@ -119,6 +121,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 			err := ui.colorPresetService.AddColor(ui.lightPicker.GetColor())
 			if err != nil {
 				log.Printf("Error adding color: %v", err)
+				ui.snackbar.ShowMessage(fmt.Sprintf("Error adding color: %v", err))
 			}
 		},
 		func(on bool) {
@@ -159,13 +162,17 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 		err := ui.eqPresetService.AddPreset(title, ui.eqSlider.GetSliderValues())
 		if err != nil {
 			log.Println(err)
+			ui.snackbar.ShowMessage(fmt.Sprintf("Error adding preset: %v", err))
+			return
 		}
+		ui.snackbar.ShowMessage(fmt.Sprintf("Successfully added (or updated) preset: %s", title))
 	})
 	ui.eqSaveButton.SetText(activePreset)
 	ui.eqPresetService.RegisterListener(ui.eqSaveButton)
 
 	ui.presetButtons = components.CreatePresetButtons(ui.eqPresetService)
 	ui.eqPresetService.RegisterListener(ui.presetButtons)
+
 	ui.currentRoute = routes.Oluv
 	ui.loaded = true
 }
@@ -245,6 +252,9 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 				}
 				return ui.homeLayout(gtx)
 			})
+		}),
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			return ui.snackbar.Layout(ui.theme, gtx)
 		}),
 	)
 }

@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"fmt"
 	"image/color"
 	"log"
+	"obx/gui/components"
 	"obx/protocol"
 	"obx/utils"
 	"strconv"
@@ -19,36 +21,53 @@ type SpeakerController struct {
 	lastColorSolid bool
 	firstColorSet  bool
 	timeoutMap     []string
+	snackbar       *components.Snackbar
 }
 
 const debounceDelay = 200 * time.Millisecond
 
-func NewSpeakerController(client protocol.ISpeakerClient) *SpeakerController {
+func NewSpeakerController(client protocol.ISpeakerClient, snackbar *components.Snackbar) *SpeakerController {
 	return &SpeakerController{
 		client:     client,
 		timeoutMap: utils.SortedKeysByValue(protocol.ShutdownTimeouts),
+		snackbar:   snackbar,
 	}
+}
+
+func (c *SpeakerController) showMessage(msg string) {
+	c.snackbar.ShowMessage(msg)
 }
 
 func (sc *SpeakerController) OnModeClicked(mode string) {
 	err := sc.client.SetOluvMode(mode)
 	if err != nil {
 		log.Printf("SetOluvMode failed: %v", err)
+		sc.showMessage(fmt.Sprintf("Failed setting %s mode", mode))
+		return
 	}
+
+	sc.showMessage(fmt.Sprintf("Successfully set %s mode", mode))
 }
 
 func (sc *SpeakerController) OnLightOffClicked() {
 	err := sc.client.HandleLightAction(protocol.LightOff, false)
 	if err != nil {
 		log.Printf("OnLightOffClicked failed: %v", err)
+		sc.showMessage("Failed turning lights off")
+		return
 	}
+
+	sc.showMessage(fmt.Sprintf("Successfully turned lights off"))
 }
 
 func (sc *SpeakerController) OnLightDefaultClicked() {
 	err := sc.client.HandleLightAction(protocol.LightDefault, false)
 	if err != nil {
 		log.Printf("OnLightDefaultClicked failed: %v", err)
+		sc.showMessage("Failed setting default lights")
+		return
 	}
+	sc.showMessage("Successfully set default lights")
 }
 
 func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) {
@@ -74,7 +93,10 @@ func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) 
 		err := sc.client.HandleLightAction(utils.NrgbaToHex(color), solidColor)
 		if err != nil {
 			log.Printf("HandleLightAction failed: %v", err)
+			sc.showMessage("Failed setting lights color")
+			return
 		}
+		sc.showMessage("Successfully set lights color")
 	})
 }
 
@@ -82,35 +104,50 @@ func (sc *SpeakerController) OnBeepStepChanged(step int) {
 	err := sc.client.SetBeepVolume(25 * step)
 	if err != nil {
 		log.Printf("SetBeepVolume failed: %v", err)
+		sc.showMessage(fmt.Sprintf("Failed setting beep volume to %d", 25*step))
+		return
 	}
+	sc.showMessage(fmt.Sprintf("Successfully set beep volume to %d", 25*step))
 }
 
 func (sc *SpeakerController) OnOffButtonClicked() {
 	err := sc.client.PowerOffSpeaker()
 	if err != nil {
 		log.Printf("PowerOffSpeaker failed: %v", err)
+		sc.showMessage("Failed powering off speaker")
+		return
 	}
+	sc.showMessage("Successfully powered off speaker")
 }
 
 func (sc *SpeakerController) OnPairingOn() {
 	err := sc.client.SetBluetoothPairing(protocol.PairingOn)
 	if err != nil {
 		log.Printf("SetBluetoothPairing failed: %v", err)
+		sc.showMessage("Failed turning pairing on")
+		return
 	}
+	sc.showMessage("Successfully turned pairing on")
 }
 
 func (sc *SpeakerController) OnPairingOff() {
 	err := sc.client.SetBluetoothPairing(protocol.PairingOff)
 	if err != nil {
 		log.Printf("SetBluetoothPairing failed: %v", err)
+		sc.showMessage("Failed turning pairing off")
+		return
 	}
+	sc.showMessage("Successfully turned pairing off")
 }
 
 func (sc *SpeakerController) OnShutdownStepChanged(step int) {
 	err := sc.client.SetShutdownTimeout(sc.timeoutMap[step])
 	if err != nil {
 		log.Printf("SetShutdownTimeout failed: %v", err)
+		sc.showMessage(fmt.Sprintf("Failed setting shutdown timeout to %s", sc.timeoutMap[step]))
+		return
 	}
+	sc.showMessage(fmt.Sprintf("Successfully set shutdown timeout to %s", sc.timeoutMap[step]))
 }
 
 func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
@@ -126,5 +163,7 @@ func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
 	err := sc.client.SetCustomEQ(sb.String())
 	if err != nil {
 		log.Printf("SetCustomEQ failed: %v", err)
+		sc.showMessage("Failed setting custom EQ")
+		return
 	}
 }
