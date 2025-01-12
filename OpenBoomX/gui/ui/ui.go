@@ -170,7 +170,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.eqSaveButton.SetText(activePreset)
 	ui.eqPresetService.RegisterListener(ui.eqSaveButton)
 
-	ui.presetButtons = components.CreatePresetButtons(ui.eqPresetService)
+	ui.presetButtons = components.CreatePresetButtons(ui.eqPresetService, ui.snackbar)
 	ui.eqPresetService.RegisterListener(ui.presetButtons)
 
 	ui.currentRoute = routes.Oluv

@@ -14,6 +14,7 @@ type PresetButtons struct {
 	presetService *services.EqPresetService
 	list          widget.List
 	presetButtons []*PresetButton
+	snackbar      *Snackbar
 }
 
 type PresetButton struct {
@@ -22,7 +23,7 @@ type PresetButton struct {
 	removeButton widget.Clickable
 }
 
-func CreatePresetButtons(presetService *services.EqPresetService) *PresetButtons {
+func CreatePresetButtons(presetService *services.EqPresetService, snackbar *Snackbar) *PresetButtons {
 	return &PresetButtons{
 		presetService: presetService,
 		list: widget.List{
@@ -31,6 +32,7 @@ func CreatePresetButtons(presetService *services.EqPresetService) *PresetButtons
 			},
 		},
 		presetButtons: createPresetButtons(presetService.ListPresets()),
+		snackbar:      snackbar,
 	}
 }
 
@@ -41,11 +43,17 @@ func (pb *PresetButtons) Layout(th *material.Theme, gtx layout.Context) layout.D
 		if btn.clickable.Clicked(gtx) {
 			if err := pb.presetService.SetActivePreset(btn.title); err != nil {
 				fmt.Printf("Error setting active preset: %v\n", err)
+				pb.snackbar.ShowMessage(fmt.Sprintf("Failed setting preset to: %s", btn.title))
+			} else {
+				pb.snackbar.ShowMessage(fmt.Sprintf("Successfully set preset to: %s", btn.title))
 			}
 		}
 		if btn.removeButton.Clicked(gtx) {
 			if err := pb.presetService.DeletePreset(btn.title); err != nil {
 				fmt.Printf("Error deleting preset: %v\n", err)
+				pb.snackbar.ShowMessage(fmt.Sprintf("Failed removing preset: %s", btn.title))
+			} else {
+				pb.snackbar.ShowMessage(fmt.Sprintf("Successfully removed preset: %s", btn.title))
 			}
 		}
 	}
