@@ -96,7 +96,6 @@ func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) 
 			sc.showMessage("Failed setting lights color")
 			return
 		}
-		sc.showMessage("Successfully set lights color")
 	})
 }
 
