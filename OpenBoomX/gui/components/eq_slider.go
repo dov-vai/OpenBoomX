@@ -30,6 +30,13 @@ func CreateEqSlider(onValuesChanged func(values []float32)) *EqSlider {
 	editorValues := make([]string, 10)
 	editors := make([]widget.Editor, 10)
 
+	for i, _ := range editors {
+		editors[i].SingleLine = true
+		// -10.0 is the value that would take up the most space
+		editors[i].MaxLen = 5
+		editors[i].Filter = "-.0123456789"
+	}
+
 	eq := &EqSlider{
 		sliderValues:    sliderValues,
 		editorValues:    editorValues,
@@ -151,7 +158,8 @@ func (eq *EqSlider) Layout(th *material.Theme, gtx layout.Context) layout.Dimens
 
 					return surfaceStyle.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 						return layout.UniformInset(4).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-							return material.Editor(th, &eq.editors[i], "val").Layout(gtx)
+							material.Editor(th, &eq.editors[i], "val").Layout(gtx)
+							return layout.Dimensions{Size: image.Pt(gtx.Dp(41.5), gtx.Dp(19))}
 						})
 					})
 				}),
