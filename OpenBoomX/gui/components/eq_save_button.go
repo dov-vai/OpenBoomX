@@ -47,7 +47,11 @@ func (btn *EqSaveButton) Layout(th *material.Theme, gtx layout.Context) layout.D
 				return layout.UniformInset(8).Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-							return material.Editor(th, &btn.editor, "Preset title").Layout(gtx)
+							editor := material.Editor(th, &btn.editor, "Preset title")
+							selectionColor := theme.MauveColor
+							selectionColor.A = selectionColor.A * 0x60
+							editor.SelectionColor = selectionColor
+							return editor.Layout(gtx)
 						}))
 				})
 			})
