@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
 	"gioui.org/app"
 	"gioui.org/font/gofont"
@@ -22,6 +23,7 @@ import (
 	"obx/protocol"
 	"obx/utils"
 	"obx/utils/bluetooth"
+	"syscall"
 	"time"
 )
 
@@ -181,7 +183,7 @@ func (ui *UI) updateBattery() {
 	updateChannel := make(chan int)
 
 	go func() {
-		ticker := time.NewTicker(30 * time.Second)
+		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 
 		batteryLevel, _ := ui.speakerClient.ReadBatteryLevel()
@@ -189,10 +191,28 @@ func (ui *UI) updateBattery() {
 
 		for range ticker.C {
 			batteryLevel, err := ui.speakerClient.ReadBatteryLevel()
-			if err != nil {
-				fmt.Println("Error reading battery level:", err)
-			} else {
+
+			if err == nil {
 				updateChannel <- batteryLevel
+				continue
+			}
+
+			fmt.Println("Error reading battery level:", err)
+
+			var errno syscall.Errno
+			if errors.As(err, &errno) {
+				// unix returns this error if socket disconnected
+				// TODO: need disconnection handling for windows too
+				if errors.Is(errno, syscall.ENOTCONN) {
+					ui.appError = fmt.Errorf("Is speaker not connected?: %w", err)
+					err = ui.speakerClient.CloseConnection()
+					if err != nil {
+						log.Printf("Error closing speaker connection: %v", err)
+					}
+					ui.loaded = false
+					close(updateChannel)
+					break
+				}
 			}
 		}
 	}()
@@ -264,6 +284,9 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 
 func (ui *UI) Dispose() {
 	if ui.speakerClient != nil {
-		ui.speakerClient.CloseConnection()
+		err := ui.speakerClient.CloseConnection()
+		if err != nil {
+			log.Printf("Error closing speaker connection: %v", err)
+		}
 	}
 }
