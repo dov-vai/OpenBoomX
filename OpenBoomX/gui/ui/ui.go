@@ -254,6 +254,9 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 			})
 		}),
 		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			if !ui.loaded {
+				return layout.Dimensions{}
+			}
 			return ui.snackbar.Layout(ui.theme, gtx)
 		}),
 	)
