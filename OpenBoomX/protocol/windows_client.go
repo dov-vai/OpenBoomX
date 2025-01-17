@@ -33,9 +33,7 @@ func (c *WindowsClient) SendMessage(hexMsg string) error {
 	}
 
 	var bytesSent uint32
-	var overlapped windows.Overlapped
-
-	err = windows.WSASend(c.handle, &windows.WSABuf{Len: uint32(len(message)), Buf: &message[0]}, 1, &bytesSent, 0, &overlapped, nil)
+	err = windows.WSASend(c.handle, &windows.WSABuf{Len: uint32(len(message)), Buf: &message[0]}, 1, &bytesSent, 0, nil, nil)
 	if err != nil {
 		return fmt.Errorf("WSASend failed: %w", err)
 	}
@@ -47,10 +45,9 @@ func (c *WindowsClient) ReceiveMessage(bufferSize int) ([]byte, int, error) {
 	buf := make([]byte, bufferSize)
 	var bytesReceived uint32
 	var flags uint32
-	var overlapped windows.Overlapped
 	wsaBuf := windows.WSABuf{Len: uint32(bufferSize), Buf: &buf[0]}
 
-	err := windows.WSARecv(c.handle, &wsaBuf, 1, &bytesReceived, &flags, &overlapped, nil)
+	err := windows.WSARecv(c.handle, &wsaBuf, 1, &bytesReceived, &flags, nil, nil)
 	if err != nil {
 		return nil, int(bytesReceived), fmt.Errorf("WSARecv failed: %w", err)
 	}
