@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"errors"
 	"fmt"
 	"gioui.org/app"
 	"gioui.org/font/gofont"
@@ -23,7 +22,6 @@ import (
 	"obx/protocol"
 	"obx/utils"
 	"obx/utils/bluetooth"
-	"syscall"
 	"time"
 )
 
@@ -199,20 +197,16 @@ func (ui *UI) updateBattery() {
 
 			fmt.Println("Error reading battery level:", err)
 
-			var errno syscall.Errno
-			if errors.As(err, &errno) {
-				// unix returns this error if socket disconnected
-				// TODO: need disconnection handling for windows too
-				if errors.Is(errno, syscall.ENOTCONN) {
-					ui.appError = fmt.Errorf("Is speaker not connected?: %w", err)
-					err = ui.speakerClient.CloseConnection()
-					if err != nil {
-						log.Printf("Error closing speaker connection: %v", err)
-					}
-					ui.loaded = false
-					close(updateChannel)
-					break
+			// handling for unix and windows if device disconnected
+			if protocol.IsSocketDisconnected(err) {
+				ui.appError = fmt.Errorf("Is speaker not connected?: %w", err)
+				err = ui.speakerClient.CloseConnection()
+				if err != nil {
+					log.Printf("Error closing speaker connection: %v", err)
 				}
+				ui.loaded = false
+				close(updateChannel)
+				break
 			}
 		}
 	}()

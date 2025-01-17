@@ -4,6 +4,7 @@ package protocol
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"golang.org/x/sys/unix"
 	"strconv"
@@ -80,4 +81,14 @@ func str2ba(addr string) [6]byte {
 		b[len(b)-1-i] = byte(u)
 	}
 	return b
+}
+
+func IsSocketDisconnected(err error) bool {
+	var errno syscall.Errno
+	if errors.As(err, &errno) {
+		if errors.Is(errno, syscall.ECONNABORTED) {
+			return true
+		}
+	}
+	return false
 }

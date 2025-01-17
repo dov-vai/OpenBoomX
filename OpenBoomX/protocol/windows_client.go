@@ -104,3 +104,13 @@ func addrToUint64(addr string) (uint64, error) {
 
 	return btAddr, nil
 }
+
+func IsSocketDisconnected(err error) bool {
+	var errno syscall.Errno
+	if errors.As(err, &errno) {
+		if errors.Is(errno, syscall.WSAECONNABORTED) {
+			return true
+		}
+	}
+	return false
+}
