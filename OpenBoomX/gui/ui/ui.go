@@ -56,6 +56,7 @@ type UI struct {
 	appError           error
 	retryConnection    widget.Clickable
 	currentRoute       routes.AppRoute
+	firmwareName       widget.Editor
 }
 
 func NewUI() *UI {
@@ -98,6 +99,7 @@ func (ui *UI) connectSpeaker() {
 
 func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerClient = client
+	ui.setFirmwareName()
 	ui.snackbar = components.CreateSnackbar()
 	ui.speakerController = controllers.NewSpeakerController(client, ui.snackbar)
 	ui.eqPresetService = services.NewEqPresetService()
@@ -172,9 +174,18 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 
 	ui.presetButtons = components.CreatePresetButtons(ui.eqPresetService, ui.snackbar)
 	ui.eqPresetService.RegisterListener(ui.presetButtons)
-
 	ui.currentRoute = routes.Oluv
 	ui.loaded = true
+}
+
+func (ui *UI) setFirmwareName() {
+	ui.firmwareName.ReadOnly = true
+	ui.firmwareName.SingleLine = true
+	firmware, err := ui.speakerClient.ReadFirmwarePackageName()
+	ui.firmwareName.SetText(firmware)
+	if err != nil {
+		log.Println(err)
+	}
 }
 
 func (ui *UI) updateBattery() {

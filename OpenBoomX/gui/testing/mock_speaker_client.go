@@ -46,3 +46,7 @@ func (client *MockSpeakerClient) ReceiveMessage(bufferSize int) ([]byte, int, er
 func (client *MockSpeakerClient) ReadBatteryLevel() (int, error) {
 	return 0, nil
 }
+
+func (client *MockSpeakerClient) ReadFirmwarePackageName() (string, error) {
+	return "", nil
+}

@@ -22,6 +22,7 @@ type ISpeakerClient interface {
 	CloseConnection() error
 	ReceiveMessage(bufferSize int) ([]byte, int, error)
 	ReadBatteryLevel() (int, error)
+	ReadFirmwarePackageName() (string, error)
 }
 
 type SpeakerClient struct {
@@ -146,6 +147,36 @@ func (client *SpeakerClient) ReadBatteryLevel() (int, error) {
 
 			if n >= 5 && buf[0] == 0xef && buf[1] == 0xa0 && buf[2] == 0x14 && buf[3] == 0x01 {
 				return int(buf[4]), nil
+			}
+		}
+	}
+}
+
+func (client *SpeakerClient) ReadFirmwarePackageName() (string, error) {
+	err := client.SendMessage(FirmwarePackageRequest)
+	if err != nil {
+		return "", err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+			buf, n, err := client.ReceiveMessage(128)
+			if err != nil {
+				if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+					return "", ctx.Err()
+				}
+				return "", err
+			}
+
+			if n >= 5 && buf[0] == 0xef && buf[1] == 0xa0 && buf[2] == 0x10 {
+				length := int(buf[3])
+				return string(buf[4 : 4+length]), nil
 			}
 		}
 	}

@@ -68,3 +68,5 @@ const (
 const RfcommChannel = 2
 
 const BatteryLevelRequest = "efa0140000fe"
+
+const FirmwarePackageRequest = "efa0100000fe"

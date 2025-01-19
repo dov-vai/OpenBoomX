@@ -142,6 +142,19 @@ func (ui *UI) constructMiscPage() []layout.FlexChild {
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return ui.offButton.Layout(ui.buttonTheme, gtx)
 		}),
+
+		layout.Rigid(layout.Spacer{Height: 8}.Layout),
+
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Horizontal, Spacing: layout.SpaceBetween}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return material.H6(ui.theme, "Firmware:").Layout(gtx)
+				}),
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return material.Editor(ui.theme, &ui.firmwareName, "").Layout(gtx)
+				}),
+			)
+		}),
 	)
 
 	return children
