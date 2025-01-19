@@ -113,10 +113,22 @@ Going above `120` (decimal) has no effect; **+10 dB** is the maximum.
 
 # Battery Reading
 
-Send message: `efa0140000fe`.
+Send message: `efa0140000fe`
 
-Receive (7 bytes): `efa014015f60fe`.
+Receive (7 bytes): `efa014015f60fe`
 
 - Prefix: `efa01401`
 - Battery level (range): `5f60` (in this case - 95-96%)
+- End: `fe`
+
+# Firmware Package Name Reading
+
+Send message: `efa0100000fe`
+
+Receive: `efa0101c53503530305f32303234303931325f76302e33395f6f74612e62696ef0fe`
+
+- Prefix: `efa010`
+- Length: `1c` -> 28 characters
+- Data: `53503530305f32303234303931325f76302e33395f6f74612e62696e` -> SP500_20240912_v0.39_ota.bin
+- ?: `f0` could be part of the suffix, could be a checksum, needs further clarification
 - End: `fe`
