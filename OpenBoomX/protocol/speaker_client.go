@@ -16,7 +16,7 @@ type ISpeakerClient interface {
 	HandleLightAction(action string, solid bool) error
 	SetShutdownTimeout(timeout string) error
 	PowerOffSpeaker() error
-	SetBluetoothPairing(mode string) error
+	SetVideoMode(mode string) error
 	SetBeepVolume(volume int) error
 	SendMessage(hexMsg string) error
 	CloseConnection() error
@@ -95,10 +95,10 @@ func (client *SpeakerClient) PowerOffSpeaker() error {
 	return client.SendMessage(SpeakerPowerOff)
 }
 
-func (client *SpeakerClient) SetBluetoothPairing(mode string) error {
-	hexMsg, ok := BluetoothPairing[mode]
+func (client *SpeakerClient) SetVideoMode(mode string) error {
+	hexMsg, ok := VideoMode[mode]
 	if !ok {
-		return fmt.Errorf("invalid Bluetooth pairing mode: %s", mode)
+		return fmt.Errorf("invalid Video mode: %s", mode)
 	}
 	return client.SendMessage(hexMsg)
 }

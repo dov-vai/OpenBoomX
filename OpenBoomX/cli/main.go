@@ -15,7 +15,7 @@ func main() {
 	oluvMode := flag.String("oluv", "", "Set EQ mode: 'studio', 'indoor', 'indoor+', 'outdoor', 'outdoor+', 'boom', 'ground'")
 	shutdown := flag.String("shutdown", "", "Set shutdown timeout: '5m', '10m', '30m', '60m', '90m', '120m', 'no'")
 	poweroff := flag.Bool("poweroff", false, "Power off the speaker")
-	pairing := flag.String("pairing", "", "Enable or disable Bluetooth pairing: 'on' or 'off'")
+	video := flag.String("video", "", "Enable or disable Video mode: 'on' or 'off'")
 	volume := flag.Int("volume", -1, "Set beep volume: 0, 25, 50, 75, 100")
 	custom := flag.String("custom", "", "Send custom hex message (advanced)")
 
@@ -41,8 +41,8 @@ func main() {
 		err = client.SetShutdownTimeout(*shutdown)
 	case *poweroff:
 		err = client.PowerOffSpeaker()
-	case *pairing != "":
-		err = client.SetBluetoothPairing(*pairing)
+	case *video != "":
+		err = client.SetVideoMode(*video)
 	case *volume != -1:
 		err = client.SetBeepVolume(*volume)
 	case *custom != "":

@@ -132,7 +132,7 @@ func (ui *UI) constructMiscPage() []layout.FlexChild {
 		}),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return ui.pairingButtons.Layout(ui.buttonTheme, gtx)
+			return ui.videoModeButtons.Layout(ui.buttonTheme, gtx)
 		}),
 
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {

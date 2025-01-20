@@ -23,7 +23,7 @@ func (client *MockSpeakerClient) PowerOffSpeaker() error {
 	return nil
 }
 
-func (client *MockSpeakerClient) SetBluetoothPairing(mode string) error {
+func (client *MockSpeakerClient) SetVideoMode(mode string) error {
 	return nil
 }
 

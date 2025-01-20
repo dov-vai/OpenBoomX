@@ -41,13 +41,13 @@ var ShutdownTimeouts = map[string]string{
 const SpeakerPowerOff = "efb025010102fe"
 
 const (
-	PairingOn  = "on"
-	PairingOff = "off"
+	VideoModeOn  = "on"
+	VideoModeOff = "off"
 )
 
-var BluetoothPairing = map[string]string{
-	PairingOn:  "efb035010102fe",
-	PairingOff: "efb035010001fe",
+var VideoMode = map[string]string{
+	VideoModeOn:  "efb035010102fe",
+	VideoModeOff: "efb035010001fe",
 }
 
 // Beep Volume Levels

@@ -119,24 +119,24 @@ func (sc *SpeakerController) OnOffButtonClicked() {
 	sc.showMessage("Successfully powered off speaker")
 }
 
-func (sc *SpeakerController) OnPairingOn() {
-	err := sc.client.SetBluetoothPairing(protocol.PairingOn)
+func (sc *SpeakerController) OnVideoModeEnabled() {
+	err := sc.client.SetVideoMode(protocol.VideoModeOn)
 	if err != nil {
-		log.Printf("SetBluetoothPairing failed: %v", err)
-		sc.showMessage("Failed turning pairing on")
+		log.Printf("SetVideoMode failed: %v", err)
+		sc.showMessage("Failed turning video mode on")
 		return
 	}
-	sc.showMessage("Successfully turned pairing on")
+	sc.showMessage("Successfully turned video mode on")
 }
 
-func (sc *SpeakerController) OnPairingOff() {
-	err := sc.client.SetBluetoothPairing(protocol.PairingOff)
+func (sc *SpeakerController) OnVideoModeDisabled() {
+	err := sc.client.SetVideoMode(protocol.VideoModeOff)
 	if err != nil {
-		log.Printf("SetBluetoothPairing failed: %v", err)
-		sc.showMessage("Failed turning pairing off")
+		log.Printf("SetVideoMode failed: %v", err)
+		sc.showMessage("Failed turning video mode off")
 		return
 	}
-	sc.showMessage("Successfully turned pairing off")
+	sc.showMessage("Successfully turned video mode off")
 }
 
 func (sc *SpeakerController) OnShutdownStepChanged(step int) {

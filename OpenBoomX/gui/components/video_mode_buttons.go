@@ -7,39 +7,39 @@ import (
 	"gioui.org/widget/material"
 )
 
-type PairingButtons struct {
-	clickableOn  widget.Clickable
-	clickableOff widget.Clickable
-	OnPairingOn  func()
-	OnPairingOff func()
+type VideoModeButtons struct {
+	clickableOn    widget.Clickable
+	clickableOff   widget.Clickable
+	OnModeEnabled  func()
+	OnModeDisabled func()
 }
 
-func CreatePairingButtons(onPairingOn func(), onPairingOff func()) *PairingButtons {
-	return &PairingButtons{
-		OnPairingOn:  onPairingOn,
-		OnPairingOff: onPairingOff,
+func CreateVideoModeButtons(onModeEnabled func(), onModeDisabled func()) *VideoModeButtons {
+	return &VideoModeButtons{
+		OnModeEnabled:  onModeEnabled,
+		OnModeDisabled: onModeDisabled,
 	}
 }
 
-func (pb *PairingButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
+func (pb *VideoModeButtons) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	if pb.clickableOn.Clicked(gtx) {
-		pb.OnPairingOn()
+		pb.OnModeEnabled()
 	}
 	if pb.clickableOff.Clicked(gtx) {
-		pb.OnPairingOff()
+		pb.OnModeDisabled()
 	}
 
 	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return material.Button(th, &pb.clickableOn, "Pairing On").Layout(gtx)
+					return material.Button(th, &pb.clickableOn, "Video Mode On").Layout(gtx)
 				}),
 				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 					return layout.Spacer{Width: unit.Dp(8)}.Layout(gtx)
 				}),
 				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-					return material.Button(th, &pb.clickableOff, "Pairing Off").Layout(gtx)
+					return material.Button(th, &pb.clickableOff, "Video Mode Off").Layout(gtx)
 				}),
 			)
 		}),

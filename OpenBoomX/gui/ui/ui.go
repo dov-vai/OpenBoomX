@@ -35,7 +35,7 @@ type UI struct {
 	lightPicker        *components.LightPicker
 	beepSlider         *components.StepSlider
 	offButton          *components.OffButton
-	pairingButtons     *components.PairingButtons
+	videoModeButtons   *components.VideoModeButtons
 	shutdownSlider     *components.StepSlider
 	eqSlider           *components.EqSlider
 	navigationBar      *components.NavigationBar
@@ -134,7 +134,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
 	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
 	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", utils.SortedKeysByValue(protocol.ShutdownTimeouts), ui.speakerController.OnShutdownStepChanged)
-	ui.pairingButtons = components.CreatePairingButtons(ui.speakerController.OnPairingOn, ui.speakerController.OnPairingOff)
+	ui.videoModeButtons = components.CreateVideoModeButtons(ui.speakerController.OnVideoModeEnabled, ui.speakerController.OnVideoModeDisabled)
 	ui.navigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
 		ui.currentRoute = route
 	})
