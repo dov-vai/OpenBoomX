@@ -90,14 +90,18 @@ Going above `120` (decimal) has no effect; **+10 dB** is the maximum.
 
 - Packet: `efb025010102fe`
 
-# Bluetooth Pairing
+# Video Mode
 
-**7 byte packets** that control the Bluetooth pairing modes.
+**7 byte packets** that control the "Video" mode.
+
+According to EarFun it reduces audio latency, but may make the connection more unstable.
+
+On the speaker, if the mode is on, the LED near the Bluetooth button lights up.
 
 | Mode | Data            |
 | -----|------------------|
-| On   | `efb035010102fe` |
 | Off  | `efb035010001fe` |
+| On   | `efb035010102fe` |
 
 # Speaker Beep Volume Control
 
