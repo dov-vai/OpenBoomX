@@ -118,6 +118,9 @@ func (ui *UI) constructLightsPage() []layout.FlexChild {
 				}),
 			)
 		}),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return ui.gradientSelector.Layout(ui.buttonTheme, gtx)
+		}),
 	)
 
 	return children

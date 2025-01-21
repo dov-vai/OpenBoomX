@@ -71,6 +71,14 @@ func (sc *SpeakerController) OnLightDefaultClicked() {
 }
 
 func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) {
+	err := sc.client.HandleLightAction(utils.NrgbaToHex(color), solidColor)
+	if err != nil {
+		log.Printf("HandleLightAction failed: %v", err)
+		sc.showMessage("Failed setting lights color")
+	}
+}
+
+func (sc *SpeakerController) OnColorChangedDebounced(color color.NRGBA, solidColor bool) {
 	// ignore the first update coming from the picker
 	// it would set the default light picker color
 	// on the speaker on app launch, we don't want that
@@ -90,12 +98,7 @@ func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) 
 	}
 
 	sc.debounceTimer = time.AfterFunc(debounceDelay, func() {
-		err := sc.client.HandleLightAction(utils.NrgbaToHex(color), solidColor)
-		if err != nil {
-			log.Printf("HandleLightAction failed: %v", err)
-			sc.showMessage("Failed setting lights color")
-			return
-		}
+		sc.OnColorChanged(color, solidColor)
 	})
 }
 

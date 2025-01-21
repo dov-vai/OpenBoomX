@@ -47,6 +47,7 @@ type UI struct {
 	colorEditButtons   *components.ColorEditButtons
 	colorWheel         *components.ColorWheel
 	snackbar           *components.Snackbar
+	gradientSelector   *components.GradientSelector
 	eqPresetService    *services.EqPresetService
 	colorPresetService *services.ColorPresetService
 	speakerController  *controllers.SpeakerController
@@ -106,7 +107,13 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.colorPresetService = services.NewColorPresetService()
 	ui.eqButtons = components.CreateEQButtons(utils.SortedKeysByValue(protocol.EQModes), ui.speakerController.OnModeClicked)
 	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnLightDefaultClicked, ui.speakerController.OnLightOffClicked)
-	ui.lightPicker = components.CreateLightPicker(ui.speakerController.OnColorChanged)
+	ui.gradientSelector = components.CreateGradientSelector(func(color color.NRGBA) {
+		ui.speakerController.OnColorChanged(color, true)
+	})
+	ui.lightPicker = components.CreateLightPicker(func(color color.NRGBA, solid bool) {
+		ui.speakerController.OnColorChangedDebounced(color, solid)
+		ui.gradientSelector.OnColorSelected(color)
+	})
 	ui.colorButtons = components.CreateColorButtons(ui.colorPresetService.ListColors(), 10, func(color color.NRGBA) {
 		if ui.colorRemoveMode {
 			err := ui.colorPresetService.DeleteColor(color)

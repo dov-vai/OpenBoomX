@@ -12,6 +12,8 @@ import (
 var BaseColor = color.NRGBA{R: 0x1e, G: 0x1e, B: 0x2e, A: 0xff}
 var TextColor = color.NRGBA{R: 0xcd, G: 0xd6, B: 0xf4, A: 0xff}
 var MauveColor = color.NRGBA{R: 0xcb, G: 0xa6, B: 0xf7, A: 0xff}
+var PeachColor = color.NRGBA{R: 0xfa, G: 0xb3, B: 0x87, A: 0xff}
+var GreenColor = color.NRGBA{R: 0xa6, G: 0xe3, B: 0xa1, A: 0xff}
 var CrustColor = color.NRGBA{R: 0x11, G: 0x11, B: 0x1b, A: 0xff}
 var MantleColor = color.NRGBA{R: 0x18, G: 0x18, B: 0x25, A: 0xff}
 var Surface0Color = color.NRGBA{R: 0x31, G: 0x32, B: 0x44, A: 0xff}
@@ -43,3 +45,4 @@ var LightIcon, _ = widget.NewIcon(icons.ActionLightbulbOutline)
 var ListIcon, _ = widget.NewIcon(icons.ActionList)
 var StarIcon, _ = widget.NewIcon(icons.ToggleStar)
 var SettingsIcon, _ = widget.NewIcon(icons.ActionSettings)
+var HelpIcon, _ = widget.NewIcon(icons.ActionHelpOutline)
