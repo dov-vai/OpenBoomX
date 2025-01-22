@@ -8,7 +8,9 @@ import (
 	"gioui.org/widget/material"
 	"image"
 	"image/color"
+	"log"
 	"obx/gui/theme"
+	"strconv"
 	"time"
 )
 
@@ -24,11 +26,23 @@ type GradientSelector struct {
 	started            bool
 	durationMil        int
 	stepTimeMil        int
+	duration           widget.Editor
 	OnColorChanged     func(color color.NRGBA)
 }
 
 func CreateGradientSelector(onColorChanged func(color color.NRGBA)) *GradientSelector {
-	gs := &GradientSelector{firstColor: theme.PeachColor, secondColor: theme.GreenColor, OnColorChanged: onColorChanged, durationMil: 2000, stepTimeMil: 5}
+	gs := &GradientSelector{
+		firstColor:     theme.PeachColor,
+		secondColor:    theme.GreenColor,
+		OnColorChanged: onColorChanged,
+		durationMil:    2000,
+		stepTimeMil:    5,
+		duration: widget.Editor{
+			SingleLine: true,
+			Filter:     "0123456789",
+		},
+	}
+	gs.duration.SetText("2000")
 	gs.gradient = createGradient(gs.firstColor, gs.secondColor, gs.getSteps())
 	return gs
 }
@@ -36,6 +50,18 @@ func CreateGradientSelector(onColorChanged func(color color.NRGBA)) *GradientSel
 func (gs *GradientSelector) Layout(th *material.Theme, gtx layout.Context) layout.Dimensions {
 	if gs.startButton.Clicked(gtx) {
 		gs.started = !gs.started
+
+		if gs.duration.Text() != "" {
+			durationMil, err := strconv.Atoi(gs.duration.Text())
+			if err != nil {
+				log.Println("error parsing duration", err)
+			}
+
+			if durationMil > 0 {
+				gs.durationMil = durationMil
+				gs.gradient = createGradient(gs.firstColor, gs.secondColor, gs.getSteps())
+			}
+		}
 
 		if gs.started {
 			go gs.startGradient()
@@ -95,6 +121,9 @@ func (gs *GradientSelector) Layout(th *material.Theme, gtx layout.Context) layou
 			return btnStyle.Layout(gtx)
 		}),
 		layout.Rigid(layout.Spacer{Width: 8}.Layout),
+		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+			return material.Editor(th, &gs.duration, "Duration").Layout(gtx)
+		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			btnText := "Start"
 			if gs.started {
