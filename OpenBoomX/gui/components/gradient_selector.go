@@ -2,8 +2,11 @@ package components
 
 import (
 	"gioui.org/layout"
+	"gioui.org/op/clip"
+	"gioui.org/op/paint"
 	"gioui.org/widget"
 	"gioui.org/widget/material"
+	"image"
 	"image/color"
 	"obx/gui/theme"
 	"time"
@@ -53,6 +56,7 @@ func (gs *GradientSelector) Layout(th *material.Theme, gtx layout.Context) layou
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			return material.H6(th, "Gradient Effect").Layout(gtx)
 		}),
+		layout.Rigid(layout.Spacer{Width: 8}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			btnStyle := material.IconButton(th, &gs.firstColorButton, nil, "")
 			btnStyle.Inset = layout.UniformInset(4)
@@ -62,6 +66,23 @@ func (gs *GradientSelector) Layout(th *material.Theme, gtx layout.Context) layou
 			}
 
 			return btnStyle.Layout(gtx)
+		}),
+		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+			gtx.Constraints.Min.Y = gtx.Dp(12)
+			gtx.Constraints.Max.Y = gtx.Constraints.Min.Y
+
+			dr := image.Rectangle{Max: gtx.Constraints.Max}
+			paint.LinearGradientOp{
+				Stop1:  layout.FPt(dr.Min),
+				Stop2:  layout.FPt(dr.Max),
+				Color1: gs.firstColor,
+				Color2: gs.secondColor,
+			}.Add(gtx.Ops)
+			defer clip.Rect(dr).Push(gtx.Ops).Pop()
+			paint.PaintOp{}.Add(gtx.Ops)
+			return layout.Dimensions{
+				Size: gtx.Constraints.Max,
+			}
 		}),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			btnStyle := material.IconButton(th, &gs.secondColorButton, nil, "")
@@ -73,6 +94,7 @@ func (gs *GradientSelector) Layout(th *material.Theme, gtx layout.Context) layou
 
 			return btnStyle.Layout(gtx)
 		}),
+		layout.Rigid(layout.Spacer{Width: 8}.Layout),
 		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
 			btnText := "Start"
 			if gs.started {
