@@ -11,16 +11,15 @@ import (
 	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"gioui.org/x/component"
-	"image/color"
 	"log"
 	"obx/gui/components"
 	"obx/gui/controllers"
+	"obx/gui/pages"
 	"obx/gui/routes"
 	"obx/gui/services"
 	"obx/gui/testing"
 	"obx/gui/theme"
 	"obx/protocol"
-	"obx/utils"
 	"obx/utils/bluetooth"
 	"time"
 )
@@ -30,34 +29,22 @@ var defaultMargin = unit.Dp(10)
 type UI struct {
 	theme              *material.Theme
 	buttonTheme        *material.Theme
-	eqButtons          *components.EqButtons
-	lightButtons       *components.LightButtons
-	lightPicker        *components.LightPicker
-	beepSlider         *components.StepSlider
-	offButton          *components.OffButton
-	videoModeButtons   *components.VideoModeButtons
-	shutdownSlider     *components.StepSlider
-	eqSlider           *components.EqSlider
 	navigationBar      *components.NavigationBar
 	statusBar          *components.StatusBar
-	eqSaveButton       *components.EqSaveButton
-	eqResetButton      *components.EqResetButton
-	presetButtons      *components.PresetButtons
-	colorButtons       *components.ColorButtons
-	colorEditButtons   *components.ColorEditButtons
-	colorWheel         *components.ColorWheel
 	snackbar           *components.Snackbar
-	gradientSelector   *components.GradientSelector
 	eqPresetService    *services.EqPresetService
 	colorPresetService *services.ColorPresetService
 	speakerController  *controllers.SpeakerController
 	speakerClient      protocol.ISpeakerClient
+	oluvPage           *pages.OluvPage
+	eqPage             *pages.EqPage
+	presetsPage        *pages.PresetsPage
+	lightsPage         *pages.LightsPage
+	miscPage           *pages.MiscPage
 	loaded             bool
-	colorRemoveMode    bool
 	appError           error
 	retryConnection    widget.Clickable
 	currentRoute       routes.AppRoute
-	firmwareName       widget.Editor
 }
 
 func NewUI() *UI {
@@ -100,99 +87,30 @@ func (ui *UI) connectSpeaker() {
 
 func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerClient = client
-	ui.setFirmwareName()
 	ui.snackbar = components.CreateSnackbar()
 	ui.speakerController = controllers.NewSpeakerController(client, ui.snackbar)
 	ui.eqPresetService = services.NewEqPresetService()
 	ui.colorPresetService = services.NewColorPresetService()
-	ui.eqButtons = components.CreateEQButtons(utils.SortedKeysByValue(protocol.EQModes), ui.speakerController.OnModeClicked)
-	ui.lightButtons = components.CreateLightButtons(ui.speakerController.OnLightDefaultClicked, ui.speakerController.OnLightOffClicked)
-	ui.gradientSelector = components.CreateGradientSelector(func(color color.NRGBA) {
-		ui.speakerController.OnColorChanged(color, true)
-	})
-	ui.lightPicker = components.CreateLightPicker(func(color color.NRGBA, solid bool) {
-		ui.speakerController.OnColorChangedDebounced(color, solid)
-		ui.gradientSelector.OnColorSelected(color)
-	})
-	ui.colorButtons = components.CreateColorButtons(ui.colorPresetService.ListColors(), 10, func(color color.NRGBA) {
-		if ui.colorRemoveMode {
-			err := ui.colorPresetService.DeleteColor(color)
-			if err != nil {
-				log.Printf("Error deleting color: %v", err)
-			}
-			return
-		}
-		ui.lightPicker.SetColor(color)
-	})
-	ui.colorPresetService.RegisterListener(ui.colorButtons)
-	ui.colorEditButtons = components.CreateColorEditButtons(
-		func() {
-			err := ui.colorPresetService.AddColor(ui.lightPicker.GetColor())
-			if err != nil {
-				log.Printf("Error adding color: %v", err)
-				ui.snackbar.ShowMessage(fmt.Sprintf("Error adding color: %v", err))
-			}
-		},
-		func(on bool) {
-			ui.colorRemoveMode = on
-		})
-
-	ui.colorWheel = components.CreateColorWheel(ui.lightPicker.SetColor)
-	ui.beepSlider = components.CreateBeepSlider(5, "Beep Volume", utils.SortedKeysByValueInt(protocol.BeepVolumes), ui.speakerController.OnBeepStepChanged)
-	ui.offButton = components.CreateOffButton(ui.speakerController.OnOffButtonClicked)
-	ui.shutdownSlider = components.CreateBeepSlider(7, "Shutdown Timeout", utils.SortedKeysByValue(protocol.ShutdownTimeouts), ui.speakerController.OnShutdownStepChanged)
-	ui.videoModeButtons = components.CreateVideoModeButtons(ui.speakerController.OnVideoModeEnabled, ui.speakerController.OnVideoModeDisabled)
 	ui.navigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
 		ui.currentRoute = route
 	})
+	ui.oluvPage = pages.NewOluvPage(ui.buttonTheme, ui.speakerController)
+	ui.eqPage = pages.NewEqPage(ui.theme, ui.buttonTheme, ui.eqPresetService, ui.speakerController, ui.snackbar)
+	ui.presetsPage = pages.NewPresetsPage(ui.buttonTheme, ui.eqPresetService, ui.snackbar)
+	ui.lightsPage = pages.NewLightsPage(ui.theme, ui.buttonTheme, ui.speakerController, ui.colorPresetService, ui.snackbar)
+	ui.miscPage = pages.NewMiscPage(ui.theme, ui.buttonTheme, ui.speakerController, ui.getFirmwareName())
 	ui.statusBar = components.CreateStatusBar()
 	ui.updateBattery()
-
-	ui.eqSlider = components.CreateEqSlider(ui.speakerController.OnEqValuesChanged)
-	// set currently active preset if it exists
-	activePreset := ui.eqPresetService.GetActivePreset()
-	if activePreset != "" {
-		eqValues, _ := ui.eqPresetService.GetPresetValues(activePreset)
-		err := ui.eqSlider.SetSliderValues(eqValues)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	ui.eqPresetService.RegisterListener(ui.eqSlider)
-
-	ui.eqResetButton = components.CreateEqResetButton(func() {
-		err := ui.eqSlider.ResetValues()
-		if err != nil {
-			log.Println(err)
-		}
-	})
-
-	ui.eqSaveButton = components.CreateEqSaveButton(func(title string) {
-		err := ui.eqPresetService.AddPreset(title, ui.eqSlider.GetSliderValues())
-		if err != nil {
-			log.Println(err)
-			ui.snackbar.ShowMessage(fmt.Sprintf("Error adding preset: %v", err))
-			return
-		}
-		ui.snackbar.ShowMessage(fmt.Sprintf("Successfully added (or updated) preset: %s", title))
-	})
-	ui.eqSaveButton.SetText(activePreset)
-	ui.eqPresetService.RegisterListener(ui.eqSaveButton)
-
-	ui.presetButtons = components.CreatePresetButtons(ui.eqPresetService, ui.snackbar)
-	ui.eqPresetService.RegisterListener(ui.presetButtons)
 	ui.currentRoute = routes.Oluv
 	ui.loaded = true
 }
 
-func (ui *UI) setFirmwareName() {
-	ui.firmwareName.ReadOnly = true
-	ui.firmwareName.SingleLine = true
+func (ui *UI) getFirmwareName() string {
 	firmware, err := ui.speakerClient.ReadFirmwarePackageName()
-	ui.firmwareName.SetText(firmware)
 	if err != nil {
 		log.Println(err)
 	}
+	return firmware
 }
 
 func (ui *UI) updateBattery() {
@@ -255,8 +173,7 @@ func (ui *UI) update(gtx layout.Context) {
 	if !ui.loaded {
 		return
 	}
-	ui.beepSlider.Update(gtx)
-	ui.shutdownSlider.Update(gtx)
+	ui.miscPage.Update(gtx)
 }
 
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
