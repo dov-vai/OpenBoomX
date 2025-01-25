@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"obx/protocol"
 	"obx/utils"
 	"obx/utils/bluetooth"
 )
@@ -21,14 +20,11 @@ func main() {
 
 	flag.Parse()
 
-	address, err := bluetooth.GetUBoomXAddress()
-	utils.Must("find uboomx address", err)
-
-	rfcomm, err := protocol.NewRfcommClient(address)
-	utils.Must("create rfcomm client", err)
-	defer rfcomm.CloseSocket()
-
-	client := protocol.NewSpeakerClient(rfcomm)
+	client, err := bluetooth.ConnectUBoomX()
+	if err != nil {
+		panic(err)
+	}
+	defer client.CloseConnection()
 
 	switch {
 	case *lightAction != "":

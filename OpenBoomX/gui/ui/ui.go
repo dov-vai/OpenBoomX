@@ -1,14 +1,12 @@
 package ui
 
 import (
-	"fmt"
 	"gioui.org/app"
 	"gioui.org/font/gofont"
 	"gioui.org/layout"
 	"gioui.org/op"
 	"gioui.org/text"
 	"gioui.org/unit"
-	"gioui.org/widget"
 	"gioui.org/widget/material"
 	"gioui.org/x/component"
 	"log"
@@ -33,9 +31,8 @@ type UI struct {
 	speakerController  *controllers.SpeakerController
 	speakerClient      protocol.ISpeakerClient
 	homePage           *pages.HomePage
+	loadingPage        *pages.LoadingPage
 	loaded             bool
-	appError           error
-	retryConnection    widget.Clickable
 }
 
 func NewUI() *UI {
@@ -46,6 +43,10 @@ func NewUI() *UI {
 	ui.theme = &th
 	btnTheme := _th.WithPalette(theme.ButtonPalette)
 	ui.buttonTheme = &btnTheme
+	ui.loadingPage = pages.NewLoadingPage(ui.buttonTheme, func() {
+		go ui.connectSpeaker()
+	})
+
 	go ui.connectSpeaker()
 	// add comments to line above and uncomment below
 	// to connect a mock speaker for GUI development
@@ -58,21 +59,12 @@ func (ui *UI) connectTestSpeaker() {
 	ui.initialize(client)
 }
 
-// TODO: should this be in ui? maybe speaker client could handle it
 func (ui *UI) connectSpeaker() {
-	address, err := bluetooth.GetUBoomXAddress()
+	client, err := bluetooth.ConnectUBoomX()
 	if err != nil {
-		ui.appError = fmt.Errorf("Is speaker not connected?: %w", err)
+		ui.loadingPage.SetError(err)
 		return
 	}
-
-	rfcomm, err := protocol.NewRfcommClient(address)
-	if err != nil {
-		ui.appError = fmt.Errorf("Is device already connected to speaker?: %w", err)
-		return
-	}
-
-	client := protocol.NewSpeakerClient(rfcomm)
 	ui.initialize(client)
 }
 
@@ -91,7 +83,7 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 		ui.colorPresetService,
 		ui.snackbar,
 		func(err error) {
-			ui.appError = err
+			ui.loadingPage.SetError(err)
 			ui.loaded = false
 		},
 	)
@@ -142,7 +134,7 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
 			return inset.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
 				if !ui.loaded {
-					return ui.loadingLayout(gtx)
+					return ui.loadingPage.Layout(gtx)
 				}
 				return ui.homePage.Layout(gtx)
 			})

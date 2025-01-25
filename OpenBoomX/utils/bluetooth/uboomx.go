@@ -1,6 +1,7 @@
 package bluetooth
 
 import (
+	"fmt"
 	"obx/protocol"
 	"runtime"
 	"strings"
@@ -29,4 +30,22 @@ func GetUBoomXAddress() (string, error) {
 		return "", err
 	}
 	return address, nil
+}
+
+func ConnectUBoomX() (protocol.ISpeakerClient, error) {
+	address, err := GetUBoomXAddress()
+	if err != nil {
+		err = fmt.Errorf("is speaker not connected?: %w", err)
+		return nil, err
+	}
+
+	rfcomm, err := protocol.NewRfcommClient(address)
+	if err != nil {
+		err = fmt.Errorf("is device already connected to speaker?: %w", err)
+		return nil, err
+	}
+
+	client := protocol.NewSpeakerClient(rfcomm)
+
+	return client, nil
 }
