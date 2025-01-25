@@ -15,13 +15,11 @@ import (
 	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/gui/pages"
-	"obx/gui/routes"
 	"obx/gui/services"
 	"obx/gui/testing"
 	"obx/gui/theme"
 	"obx/protocol"
 	"obx/utils/bluetooth"
-	"time"
 )
 
 var defaultMargin = unit.Dp(10)
@@ -29,22 +27,15 @@ var defaultMargin = unit.Dp(10)
 type UI struct {
 	theme              *material.Theme
 	buttonTheme        *material.Theme
-	navigationBar      *components.NavigationBar
-	statusBar          *components.StatusBar
 	snackbar           *components.Snackbar
 	eqPresetService    *services.EqPresetService
 	colorPresetService *services.ColorPresetService
 	speakerController  *controllers.SpeakerController
 	speakerClient      protocol.ISpeakerClient
-	oluvPage           *pages.OluvPage
-	eqPage             *pages.EqPage
-	presetsPage        *pages.PresetsPage
-	lightsPage         *pages.LightsPage
-	miscPage           *pages.MiscPage
+	homePage           *pages.HomePage
 	loaded             bool
 	appError           error
 	retryConnection    widget.Clickable
-	currentRoute       routes.AppRoute
 }
 
 func NewUI() *UI {
@@ -58,7 +49,7 @@ func NewUI() *UI {
 	go ui.connectSpeaker()
 	// add comments to line above and uncomment below
 	// to connect a mock speaker for GUI development
-	//go ui.connectTestSpeaker()
+	// go ui.connectTestSpeaker()
 	return ui
 }
 
@@ -91,67 +82,21 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerController = controllers.NewSpeakerController(client, ui.snackbar)
 	ui.eqPresetService = services.NewEqPresetService()
 	ui.colorPresetService = services.NewColorPresetService()
-	ui.navigationBar = components.CreateNavigationBar(func(route routes.AppRoute) {
-		ui.currentRoute = route
-	})
-	ui.oluvPage = pages.NewOluvPage(ui.buttonTheme, ui.speakerController)
-	ui.eqPage = pages.NewEqPage(ui.theme, ui.buttonTheme, ui.eqPresetService, ui.speakerController, ui.snackbar)
-	ui.presetsPage = pages.NewPresetsPage(ui.buttonTheme, ui.eqPresetService, ui.snackbar)
-	ui.lightsPage = pages.NewLightsPage(ui.theme, ui.buttonTheme, ui.speakerController, ui.colorPresetService, ui.snackbar)
-	ui.miscPage = pages.NewMiscPage(ui.theme, ui.buttonTheme, ui.speakerController, ui.getFirmwareName())
-	ui.statusBar = components.CreateStatusBar()
-	ui.updateBattery()
-	ui.currentRoute = routes.Oluv
+
+	ui.homePage = pages.NewHomePage(
+		ui.theme,
+		ui.buttonTheme,
+		ui.speakerController,
+		ui.eqPresetService,
+		ui.colorPresetService,
+		ui.snackbar,
+		func(err error) {
+			ui.appError = err
+			ui.loaded = false
+		},
+	)
+
 	ui.loaded = true
-}
-
-func (ui *UI) getFirmwareName() string {
-	firmware, err := ui.speakerClient.ReadFirmwarePackageName()
-	if err != nil {
-		log.Println(err)
-	}
-	return firmware
-}
-
-func (ui *UI) updateBattery() {
-	updateChannel := make(chan int)
-
-	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		batteryLevel, _ := ui.speakerClient.ReadBatteryLevel()
-		updateChannel <- batteryLevel
-
-		for range ticker.C {
-			batteryLevel, err := ui.speakerClient.ReadBatteryLevel()
-
-			if err == nil {
-				updateChannel <- batteryLevel
-				continue
-			}
-
-			fmt.Println("Error reading battery level:", err)
-
-			// handling for unix and windows if device disconnected
-			if protocol.IsSocketDisconnected(err) {
-				ui.appError = fmt.Errorf("Is speaker not connected?: %w", err)
-				err = ui.speakerClient.CloseConnection()
-				if err != nil {
-					log.Printf("Error closing speaker connection: %v", err)
-				}
-				ui.loaded = false
-				close(updateChannel)
-				break
-			}
-		}
-	}()
-
-	go func() {
-		for batteryLevel := range updateChannel {
-			ui.statusBar.BatteryLevel = batteryLevel
-		}
-	}()
 }
 
 func (ui *UI) Run(w *app.Window) error {
@@ -173,7 +118,7 @@ func (ui *UI) update(gtx layout.Context) {
 	if !ui.loaded {
 		return
 	}
-	ui.miscPage.Update(gtx)
+	ui.homePage.Update(gtx)
 }
 
 func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
@@ -199,7 +144,7 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 				if !ui.loaded {
 					return ui.loadingLayout(gtx)
 				}
-				return ui.homeLayout(gtx)
+				return ui.homePage.Layout(gtx)
 			})
 		}),
 		layout.Expanded(func(gtx layout.Context) layout.Dimensions {

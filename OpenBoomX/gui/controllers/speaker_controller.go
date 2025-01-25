@@ -169,3 +169,37 @@ func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
 		return
 	}
 }
+
+func (sc *SpeakerController) UpdateBattery(onUpdate func(value int, err error)) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		batteryLevel, err := sc.client.ReadBatteryLevel()
+
+		if err == nil {
+			onUpdate(batteryLevel, nil)
+			continue
+		}
+
+		fmt.Println("Error reading battery level:", err)
+
+		// handling for unix and windows if device disconnected
+		if protocol.IsSocketDisconnected(err) {
+			onUpdate(0, fmt.Errorf("Is speaker not connected?: %w", err))
+			err = sc.client.CloseConnection()
+			if err != nil {
+				log.Printf("Error closing speaker connection: %v", err)
+			}
+			break
+		}
+	}
+}
+
+func (sc *SpeakerController) GetFirmwareName() string {
+	firmware, err := sc.client.ReadFirmwarePackageName()
+	if err != nil {
+		log.Println(err)
+	}
+	return firmware
+}
