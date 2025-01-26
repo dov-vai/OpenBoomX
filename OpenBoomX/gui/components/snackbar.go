@@ -60,42 +60,38 @@ func (s *Snackbar) Layout(th *material.Theme, gtx layout.Context) layout.Dimensi
 
 	return layout.Stack{Alignment: layout.S}.Layout(gtx,
 		layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-			return layout.UniformInset(unit.Dp(16)).Layout(gtx,
-				func(gtx layout.Context) layout.Dimensions {
-					return s.dismiss.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
-						return layout.Stack{}.Layout(gtx,
-							layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-								constraints := gtx.Constraints.Min
-								constraints.X = gtx.Constraints.Max.X
+			return s.dismiss.Layout(gtx, func(gtx layout.Context) layout.Dimensions {
+				return layout.Stack{}.Layout(gtx,
+					layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+						constraints := gtx.Constraints.Min
+						constraints.X = gtx.Constraints.Max.X
 
-								bounds := image.Rectangle{
-									Max: constraints,
-								}
+						bounds := image.Rectangle{
+							Max: constraints,
+						}
 
-								surfaceColor := theme.Surface0Color
-								surfaceColor.A = 230
+						surfaceColor := theme.Surface0Color
+						surfaceColor.A = 230
 
-								paint.FillShape(gtx.Ops,
-									surfaceColor,
-									clip.UniformRRect(bounds, 4).Op(gtx.Ops),
-								)
-
-								return layout.Dimensions{Size: bounds.Max}
-							}),
-							layout.Stacked(func(gtx layout.Context) layout.Dimensions {
-								return layout.UniformInset(unit.Dp(12)).Layout(gtx,
-									func(gtx layout.Context) layout.Dimensions {
-										label := material.Body1(th, s.message)
-										label.Color = th.Fg
-										label.Alignment = text.Middle
-										return label.Layout(gtx)
-									},
-								)
-							}),
+						paint.FillShape(gtx.Ops,
+							surfaceColor,
+							clip.UniformRRect(bounds, 4).Op(gtx.Ops),
 						)
-					})
-				},
-			)
+
+						return layout.Dimensions{Size: bounds.Max}
+					}),
+					layout.Stacked(func(gtx layout.Context) layout.Dimensions {
+						return layout.UniformInset(unit.Dp(12)).Layout(gtx,
+							func(gtx layout.Context) layout.Dimensions {
+								label := material.Body1(th, s.message)
+								label.Color = th.Fg
+								label.Alignment = text.Middle
+								return label.Layout(gtx)
+							},
+						)
+					}),
+				)
+			})
 		}),
 	)
 }

@@ -31,7 +31,6 @@ func NewHomePage(
 	speakerController *controllers.SpeakerController,
 	eqPresetService *services.EqPresetService,
 	colorPresetService *services.ColorPresetService,
-	snackbar *components.Snackbar,
 	onUnload func(err error),
 ) *HomePage {
 	page := &HomePage{}
@@ -40,7 +39,7 @@ func NewHomePage(
 	page.speakerController = speakerController
 	page.eqPresetService = eqPresetService
 	page.colorPresetService = colorPresetService
-	page.snackbar = snackbar
+	page.snackbar = components.CreateSnackbar()
 	page.currentRoute = routes.Oluv
 
 	page.topBar = components.CreateTopBar(page.theme, page.buttonTheme, func(route routes.AppRoute) {
@@ -68,25 +67,40 @@ func (h *HomePage) Update(gtx layout.Context) {
 }
 
 func (h *HomePage) Layout(gtx layout.Context) layout.Dimensions {
-	return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
-		layout.Rigid(func(gtx layout.Context) layout.Dimensions {
-			return h.topBar.Layout(gtx)
+	return layout.Stack{}.Layout(gtx,
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			return layout.Flex{Axis: layout.Vertical}.Layout(gtx,
+				layout.Rigid(func(gtx layout.Context) layout.Dimensions {
+					return h.topBar.Layout(gtx)
+				}),
+				layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+					return layout.Flex{Axis: layout.Horizontal}.Layout(gtx,
+						layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
+							switch h.currentRoute {
+							case routes.Oluv:
+								return h.oluvPage.Layout(gtx)
+							case routes.Eq:
+								return h.eqPage.Layout(gtx)
+							case routes.EqPresets:
+								return h.presetsPage.Layout(gtx)
+							case routes.Lights:
+								return h.lightsPage.Layout(gtx)
+							case routes.Misc:
+								return h.miscPage.Layout(gtx)
+							default:
+								return layout.Dimensions{}
+							}
+						}),
+					)
+				}),
+			)
 		}),
-		layout.Flexed(1, func(gtx layout.Context) layout.Dimensions {
-			switch h.currentRoute {
-			case routes.Oluv:
-				return h.oluvPage.Layout(gtx)
-			case routes.Eq:
-				return h.eqPage.Layout(gtx)
-			case routes.EqPresets:
-				return h.presetsPage.Layout(gtx)
-			case routes.Lights:
-				return h.lightsPage.Layout(gtx)
-			case routes.Misc:
-				return h.miscPage.Layout(gtx)
-			default:
-				return layout.Dimensions{}
-			}
+		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
+			return h.snackbar.Layout(h.theme, gtx)
 		}),
 	)
+}
+
+func (h *HomePage) OnMessage(msg string) {
+	h.snackbar.ShowMessage(msg)
 }

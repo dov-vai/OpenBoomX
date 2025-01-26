@@ -10,7 +10,6 @@ import (
 	"gioui.org/widget/material"
 	"gioui.org/x/component"
 	"log"
-	"obx/gui/components"
 	"obx/gui/controllers"
 	"obx/gui/pages"
 	"obx/gui/services"
@@ -25,7 +24,6 @@ var defaultMargin = unit.Dp(10)
 type UI struct {
 	theme              *material.Theme
 	buttonTheme        *material.Theme
-	snackbar           *components.Snackbar
 	eqPresetService    *services.EqPresetService
 	colorPresetService *services.ColorPresetService
 	speakerController  *controllers.SpeakerController
@@ -70,8 +68,7 @@ func (ui *UI) connectSpeaker() {
 
 func (ui *UI) initialize(client protocol.ISpeakerClient) {
 	ui.speakerClient = client
-	ui.snackbar = components.CreateSnackbar()
-	ui.speakerController = controllers.NewSpeakerController(client, ui.snackbar)
+	ui.speakerController = controllers.NewSpeakerController(client)
 	ui.eqPresetService = services.NewEqPresetService()
 	ui.colorPresetService = services.NewColorPresetService()
 
@@ -81,12 +78,13 @@ func (ui *UI) initialize(client protocol.ISpeakerClient) {
 		ui.speakerController,
 		ui.eqPresetService,
 		ui.colorPresetService,
-		ui.snackbar,
 		func(err error) {
 			ui.loadingPage.SetError(err)
 			ui.loaded = false
 		},
 	)
+
+	ui.speakerController.RegisterListener(ui.homePage)
 
 	ui.loaded = true
 }
@@ -138,12 +136,6 @@ func (ui *UI) layout(gtx layout.Context) layout.Dimensions {
 				}
 				return ui.homePage.Layout(gtx)
 			})
-		}),
-		layout.Expanded(func(gtx layout.Context) layout.Dimensions {
-			if !ui.loaded {
-				return layout.Dimensions{}
-			}
-			return ui.snackbar.Layout(ui.theme, gtx)
 		}),
 	)
 }

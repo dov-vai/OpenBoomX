@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image/color"
 	"log"
-	"obx/gui/components"
 	"obx/protocol"
 	"obx/utils"
 	"strconv"
@@ -12,6 +11,10 @@ import (
 	"sync"
 	"time"
 )
+
+type MessageListener interface {
+	OnMessage(msg string)
+}
 
 type SpeakerController struct {
 	client         protocol.ISpeakerClient
@@ -21,60 +24,55 @@ type SpeakerController struct {
 	lastColorSolid bool
 	firstColorSet  bool
 	timeoutMap     []string
-	snackbar       *components.Snackbar
+	listeners      []MessageListener
 }
 
 const debounceDelay = 200 * time.Millisecond
 
-func NewSpeakerController(client protocol.ISpeakerClient, snackbar *components.Snackbar) *SpeakerController {
+func NewSpeakerController(client protocol.ISpeakerClient) *SpeakerController {
 	return &SpeakerController{
 		client:     client,
 		timeoutMap: utils.SortedKeysByValue(protocol.ShutdownTimeouts),
-		snackbar:   snackbar,
 	}
-}
-
-func (c *SpeakerController) showMessage(msg string) {
-	c.snackbar.ShowMessage(msg)
 }
 
 func (sc *SpeakerController) OnModeClicked(mode string) {
 	err := sc.client.SetOluvMode(mode)
 	if err != nil {
 		log.Printf("SetOluvMode failed: %v", err)
-		sc.showMessage(fmt.Sprintf("Failed setting %s mode", mode))
+		sc.notifyListeners(fmt.Sprintf("Failed setting %s mode", mode))
 		return
 	}
 
-	sc.showMessage(fmt.Sprintf("Successfully set %s mode", mode))
+	sc.notifyListeners(fmt.Sprintf("Successfully set %s mode", mode))
 }
 
 func (sc *SpeakerController) OnLightOffClicked() {
 	err := sc.client.HandleLightAction(protocol.LightOff, false)
 	if err != nil {
 		log.Printf("OnLightOffClicked failed: %v", err)
-		sc.showMessage("Failed turning lights off")
+		sc.notifyListeners("Failed turning lights off")
 		return
 	}
 
-	sc.showMessage(fmt.Sprintf("Successfully turned lights off"))
+	sc.notifyListeners(fmt.Sprintf("Successfully turned lights off"))
 }
 
 func (sc *SpeakerController) OnLightDefaultClicked() {
 	err := sc.client.HandleLightAction(protocol.LightDefault, false)
 	if err != nil {
 		log.Printf("OnLightDefaultClicked failed: %v", err)
-		sc.showMessage("Failed setting default lights")
+		sc.notifyListeners("Failed setting default lights")
 		return
 	}
-	sc.showMessage("Successfully set default lights")
+	sc.notifyListeners("Successfully set default lights")
 }
 
 func (sc *SpeakerController) OnColorChanged(color color.NRGBA, solidColor bool) {
 	err := sc.client.HandleLightAction(utils.NrgbaToHex(color), solidColor)
 	if err != nil {
 		log.Printf("HandleLightAction failed: %v", err)
-		sc.showMessage("Failed setting lights color")
+		sc.notifyListeners("Failed setting lights color")
 	}
 }
 
@@ -106,50 +104,50 @@ func (sc *SpeakerController) OnBeepStepChanged(step int) {
 	err := sc.client.SetBeepVolume(25 * step)
 	if err != nil {
 		log.Printf("SetBeepVolume failed: %v", err)
-		sc.showMessage(fmt.Sprintf("Failed setting beep volume to %d", 25*step))
+		sc.notifyListeners(fmt.Sprintf("Failed setting beep volume to %d", 25*step))
 		return
 	}
-	sc.showMessage(fmt.Sprintf("Successfully set beep volume to %d", 25*step))
+	sc.notifyListeners(fmt.Sprintf("Successfully set beep volume to %d", 25*step))
 }
 
 func (sc *SpeakerController) OnOffButtonClicked() {
 	err := sc.client.PowerOffSpeaker()
 	if err != nil {
 		log.Printf("PowerOffSpeaker failed: %v", err)
-		sc.showMessage("Failed powering off speaker")
+		sc.notifyListeners("Failed powering off speaker")
 		return
 	}
-	sc.showMessage("Successfully powered off speaker")
+	sc.notifyListeners("Successfully powered off speaker")
 }
 
 func (sc *SpeakerController) OnVideoModeEnabled() {
 	err := sc.client.SetVideoMode(protocol.VideoModeOn)
 	if err != nil {
 		log.Printf("SetVideoMode failed: %v", err)
-		sc.showMessage("Failed turning video mode on")
+		sc.notifyListeners("Failed turning video mode on")
 		return
 	}
-	sc.showMessage("Successfully turned video mode on")
+	sc.notifyListeners("Successfully turned video mode on")
 }
 
 func (sc *SpeakerController) OnVideoModeDisabled() {
 	err := sc.client.SetVideoMode(protocol.VideoModeOff)
 	if err != nil {
 		log.Printf("SetVideoMode failed: %v", err)
-		sc.showMessage("Failed turning video mode off")
+		sc.notifyListeners("Failed turning video mode off")
 		return
 	}
-	sc.showMessage("Successfully turned video mode off")
+	sc.notifyListeners("Successfully turned video mode off")
 }
 
 func (sc *SpeakerController) OnShutdownStepChanged(step int) {
 	err := sc.client.SetShutdownTimeout(sc.timeoutMap[step])
 	if err != nil {
 		log.Printf("SetShutdownTimeout failed: %v", err)
-		sc.showMessage(fmt.Sprintf("Failed setting shutdown timeout to %s", sc.timeoutMap[step]))
+		sc.notifyListeners(fmt.Sprintf("Failed setting shutdown timeout to %s", sc.timeoutMap[step]))
 		return
 	}
-	sc.showMessage(fmt.Sprintf("Successfully set shutdown timeout to %s", sc.timeoutMap[step]))
+	sc.notifyListeners(fmt.Sprintf("Successfully set shutdown timeout to %s", sc.timeoutMap[step]))
 }
 
 func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
@@ -165,7 +163,7 @@ func (sc *SpeakerController) OnEqValuesChanged(values []float32) {
 	err := sc.client.SetCustomEQ(sb.String())
 	if err != nil {
 		log.Printf("SetCustomEQ failed: %v", err)
-		sc.showMessage("Failed setting custom EQ")
+		sc.notifyListeners("Failed setting custom EQ")
 		return
 	}
 }
@@ -202,4 +200,23 @@ func (sc *SpeakerController) GetFirmwareName() string {
 		log.Println(err)
 	}
 	return firmware
+}
+
+func (sc *SpeakerController) RegisterListener(listener MessageListener) {
+	sc.listeners = append(sc.listeners, listener)
+}
+
+func (sc *SpeakerController) RemoveListener(listener MessageListener) {
+	for i, l := range sc.listeners {
+		if l == listener {
+			sc.listeners = append(sc.listeners[:i], sc.listeners[i+1:]...)
+			break
+		}
+	}
+}
+
+func (sc *SpeakerController) notifyListeners(msg string) {
+	for _, listener := range sc.listeners {
+		listener.OnMessage(msg)
+	}
 }
