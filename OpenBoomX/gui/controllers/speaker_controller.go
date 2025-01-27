@@ -172,7 +172,9 @@ func (sc *SpeakerController) UpdateBattery(onUpdate func(value int, err error)) 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
-	for range ticker.C {
+	// starts the first iteration immediately
+	// in comparison to the "for range ticker.C" way
+	for ; true; <-ticker.C {
 		batteryLevel, err := sc.client.ReadBatteryLevel()
 
 		if err == nil {
