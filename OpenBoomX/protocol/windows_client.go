@@ -4,8 +4,10 @@ package protocol
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
+	"syscall"
 
 	"golang.org/x/sys/windows"
 )
